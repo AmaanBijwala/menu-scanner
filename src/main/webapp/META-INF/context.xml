@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Tomcat 10 context configuration.
+    SameSite=strict on the JSESSIONID cookie prevents CSRF
+    without requiring manual token handling in every form.
+-->
+<Context>
+    <CookieProcessor sameSiteCookies="strict" />
+</Context>
