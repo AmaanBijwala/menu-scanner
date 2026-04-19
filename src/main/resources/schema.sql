@@ -89,6 +89,16 @@ CREATE TABLE scan_analytics (
 
 CREATE INDEX idx_analytics_restaurant ON scan_analytics (restaurant_id, scanned_at);
 
+-- ── 6. categories ───────────────────────────────────────────
+CREATE TABLE categories (
+    id            NUMBER         GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    restaurant_id NUMBER         NOT NULL,
+    name          VARCHAR2(100)  NOT NULL,
+    CONSTRAINT fk_cat_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_categories_restaurant ON categories (restaurant_id);
+
 -- ── Sample seed data (remove before production) ──────────────
 -- Password hash below = BCrypt of "admin123" with 12 rounds
 INSERT INTO restaurants (name, slug, email, password_hash, phone, plan_type)

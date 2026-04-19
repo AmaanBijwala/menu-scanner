@@ -9,6 +9,7 @@ public class MenuItem {
     private String name;
     private String description;
     private BigDecimal price;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
     private String category;
     private String imagePath;         // relative path: "{restaurantId}/{uuid}.jpg"
     private boolean veg;
@@ -32,6 +33,25 @@ public class MenuItem {
 
     public BigDecimal getPrice()                 { return price; }
     public void setPrice(BigDecimal price)       { this.price = price; }
+
+    public BigDecimal getDiscountAmount()              { return discountAmount != null ? discountAmount : BigDecimal.ZERO; }
+    public void setDiscountAmount(BigDecimal d)        { this.discountAmount = (d != null ? d : BigDecimal.ZERO); }
+
+    public BigDecimal getFinalPrice() {
+        BigDecimal d = getDiscountAmount();
+        if (d.compareTo(BigDecimal.ZERO) <= 0) return price;
+        return price.subtract(d).max(BigDecimal.ZERO);
+    }
+
+    public boolean hasDiscount() {
+        return getDiscountAmount().compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    public String getDiscountPercent() {
+        if (!hasDiscount() || price == null || price.compareTo(BigDecimal.ZERO) == 0) return "0";
+        return String.valueOf(getDiscountAmount().multiply(new java.math.BigDecimal("100"))
+                .divide(price, 0, java.math.RoundingMode.HALF_UP));
+    }
 
     public String getCategory()                  { return category; }
     public void setCategory(String category)     { this.category = category; }

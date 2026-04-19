@@ -1,0 +1,50 @@
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
+        <span class="sidebar-brand">Menu Scanner</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="${pageContext.request.contextPath}/dashboard" id="nav-dashboard">
+            <span class="sidebar-nav-icon">&#9632;</span>
+            <span class="sidebar-nav-label">Dashboard</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/menu-items" id="nav-menu">
+            <span class="sidebar-nav-icon">&#127869;</span>
+            <span class="sidebar-nav-label">Menu Manager</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/customers" id="nav-leads">
+            <span class="sidebar-nav-icon">&#128101;</span>
+            <span class="sidebar-nav-label">Leads</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/dashboard" id="nav-qr">
+            <span class="sidebar-nav-icon">&#9633;</span>
+            <span class="sidebar-nav-label">QR Generator</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/campaigns" id="nav-campaigns">
+            <span class="sidebar-nav-icon">&#128227;</span>
+            <span class="sidebar-nav-label">Campaigns</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <form method="post" action="${pageContext.request.contextPath}/logout">
+            <button type="submit">
+                <span class="sidebar-nav-icon">&#8617;</span>
+                <span class="sidebar-nav-label">Logout</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+<script>
+(function() {
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        document.getElementById('sidebar').classList.add('collapsed');
+    }
+})();
+
+function toggleSidebar() {
+    const s = document.getElementById('sidebar');
+    s.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', s.classList.contains('collapsed'));
+}
+</script>

@@ -1,0 +1,37 @@
+Dish Identity,Category,Actual Price,Discount (optional),Final Price,Display Order,Description,Veg (Y/N),Available (Y/N)
+Chicken Biryani,Biryani,220,,220,1,Fragrant basmati rice slow-cooked with tender chicken pieces and aromatic spices,N,Y
+Mutton Biryani,Biryani,280,,280,2,Succulent mutton pieces layered with saffron-infused basmati rice and fried onions,N,Y
+Egg Biryani,Biryani,160,,160,3,Fluffy basmati rice cooked with spiced boiled eggs and caramelised onions,N,Y
+Veg Biryani,Biryani,140,,140,4,Garden vegetables slow-cooked with aromatic rice and whole spices,Y,Y
+Chicken Dum Biryani,Biryani,250,,250,5,Slow-cooked on dum for deep flavour — chicken marinated overnight in yoghurt and spices,N,Y
+Seekh Kebab,Starters,180,,180,1,Minced lamb mixed with herbs and spices skewered and grilled on charcoal,N,Y
+Shammi Kebab,Starters,160,,160,2,Soft pan-fried patties of minced mutton and chana dal with mint chutney,N,Y
+Boti Kebab,Starters,200,,200,3,Juicy boneless mutton pieces marinated in raw papaya and spices grilled to perfection,N,Y
+Chicken Tikka,Starters,190,,190,4,Tender chicken chunks marinated in yoghurt and spices chargrilled in a tandoor,N,Y
+Veg Seekh Kebab,Starters,120,,120,5,Spiced mixed vegetable seekh grilled on skewers served with green chutney,Y,Y
+Paneer Tikka,Starters,150,,150,6,Marinated cottage cheese cubes grilled in tandoor with peppers and onions,Y,Y
+Butter Chicken,Main Course,220,,220,1,Slow-cooked chicken in a rich velvety tomato and butter gravy,N,Y
+Chicken Handi,Main Course,240,,240,2,Tender chicken cooked in a traditional clay pot with whole spices and cream,N,Y
+Mutton Rogan Josh,Main Course,280,,280,3,Kashmiri-style mutton curry with intense red gravy and aromatic whole spices,N,Y
+Mutton Korma,Main Course,270,,270,4,Slow-braised mutton in a rich yoghurt and nut-based gravy,N,Y
+Chicken Curry,Main Course,190,,190,5,Home-style chicken cooked with onion-tomato masala and freshly ground spices,N,Y
+Dal Makhani,Main Course,140,,140,6,Black lentils slow-cooked overnight with butter and cream,Y,Y
+Paneer Butter Masala,Main Course,170,,170,7,Soft cottage cheese in a smooth buttery tomato gravy,Y,Y
+Mix Veg Curry,Main Course,140,,140,8,Seasonal vegetables cooked in a mildly spiced onion and tomato gravy,Y,Y
+Egg Curry,Main Course,150,,150,9,Boiled eggs simmered in a tangy onion-tomato masala,N,Y
+Tandoori Roti,Breads,20,,20,1,Whole wheat bread baked fresh in a clay tandoor,Y,Y
+Butter Naan,Breads,30,,30,2,Soft leavened bread brushed with butter fresh out of the tandoor,Y,Y
+Garlic Naan,Breads,35,,35,3,Naan topped with garlic and coriander baked in the tandoor,Y,Y
+Laccha Paratha,Breads,30,,30,4,Flaky layered whole wheat bread cooked in the tandoor,Y,Y
+Rumali Roti,Breads,25,,25,5,Paper-thin handkerchief bread cooked on an inverted griddle,Y,Y
+Raita,Sides,50,,50,1,Chilled yoghurt whisked with cumin cucumber and fresh coriander,Y,Y
+Papad,Sides,30,,30,2,Crisp roasted lentil wafers served with green chutney,Y,Y
+Salad,Sides,40,,40,3,Fresh onion cucumber and lemon wedges with chaat masala,Y,Y
+Chicken Soup,Soups,80,,80,1,Clear comforting broth with tender chicken shreds and mild spices,N,Y
+Sweet Lassi,Beverages,70,,70,1,Thick chilled yoghurt drink sweetened and garnished with malai,Y,Y
+Mango Lassi,Beverages,90,,90,2,Creamy yoghurt blended with Alphonso mango pulp,Y,Y
+Masala Chai,Beverages,30,,30,3,Spiced milk tea brewed with ginger cardamom and cinnamon,Y,Y
+Mineral Water,Beverages,20,,20,4,Chilled packaged drinking water,Y,Y
+Gulab Jamun,Desserts,60,,60,1,Soft milk-solid dumplings soaked in rose-flavoured sugar syrup served warm,Y,Y
+Kheer,Desserts,70,,70,2,Creamy slow-cooked rice pudding with cardamom saffron and dry fruits,Y,Y
+Phirni,Desserts,80,,80,3,Traditional ground rice pudding set in clay bowls garnished with pistachios,Y,Y

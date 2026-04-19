@@ -112,8 +112,28 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-
             <version>2.10.1</version>
+        </dependency>
+
+        <!-- Apache POI — Excel (.xlsx) read/write for bulk upload -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
+        <!-- commons-io pinned to 2.15.1 — POI 5.2.5 needs builder() added in 2.13+ -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.15.1</version>
+        </dependency>
+
+        <!-- Apache Commons CSV — CSV parsing for bulk upload -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.11.0</version>
         </dependency>
     </dependencies>
 

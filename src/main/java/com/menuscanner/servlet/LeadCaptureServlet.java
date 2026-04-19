@@ -41,9 +41,14 @@ public class LeadCaptureServlet extends HttpServlet {
         String gender  = req.getParameter("gender");
         String consent = req.getParameter("consentWhatsapp");
 
-        if (isBlank(slug) || isBlank(name) || isBlank(phone)) {
+        if (isBlank(slug)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\":\"slug, name, and phone are required.\"}");
+            resp.getWriter().write("{\"error\":\"Invalid request.\"}");
+            return;
+        }
+        if (isBlank(name) || isBlank(phone)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"error\":\"Name and phone number are required.\"}");
             return;
         }
 

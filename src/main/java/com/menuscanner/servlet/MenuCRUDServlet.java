@@ -1,6 +1,8 @@
 package com.menuscanner.servlet;
 
+import com.menuscanner.dao.CategoryDAO;
 import com.menuscanner.dao.MenuItemDAO;
+import com.menuscanner.model.Category;
 import com.menuscanner.model.MenuItem;
 import com.menuscanner.util.PlanConfig;
 import com.menuscanner.util.RedisCache;
@@ -29,6 +31,7 @@ import java.util.List;
 public class MenuCRUDServlet extends HttpServlet {
 
     private final MenuItemDAO menuItemDAO = new MenuItemDAO();
+    private final CategoryDAO categoryDAO = new CategoryDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -37,7 +40,9 @@ public class MenuCRUDServlet extends HttpServlet {
         String planType   = (String) req.getSession().getAttribute("planType");
         try {
             List<MenuItem> items = menuItemDAO.findByRestaurantId(restaurantId);
+            List<Category> categories = categoryDAO.findByRestaurantId(restaurantId);
             req.setAttribute("menuItems",  items);
+            req.setAttribute("categories", categories);
             req.setAttribute("itemCount",  items.size());
             req.setAttribute("maxItems",   PlanConfig.getMaxMenuItems(planType));
             req.setAttribute("planType",   planType);
@@ -124,6 +129,9 @@ public class MenuCRUDServlet extends HttpServlet {
         String priceStr = req.getParameter("price");
         item.setPrice(priceStr != null && !priceStr.isBlank()
                 ? new BigDecimal(priceStr) : BigDecimal.ZERO);
+        String discountStr = req.getParameter("discountAmount");
+        item.setDiscountAmount(discountStr != null && !discountStr.isBlank()
+                ? new BigDecimal(discountStr) : BigDecimal.ZERO);
         item.setCategory(req.getParameter("category"));
         item.setImagePath(req.getParameter("imagePath")); // set after upload, may be null on add
         item.setVeg(isTruthy(req.getParameter("isVeg")));

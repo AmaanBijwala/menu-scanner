@@ -9,7 +9,7 @@ import java.util.List;
 public class MenuItemDAO {
 
     public List<MenuItem> findByRestaurantId(long restaurantId) throws SQLException {
-        String sql = "SELECT * FROM menu_items WHERE restaurant_id = ? ORDER BY display_order ASC";
+        String sql = "SELECT * FROM menu_items WHERE restaurant_id = ? ORDER BY category ASC NULLS LAST, display_order ASC, name ASC";
         List<MenuItem> items = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -50,20 +50,21 @@ public class MenuItemDAO {
     /** Inserts item and returns generated id. */
     public long save(MenuItem item) throws SQLException {
         String sql = "INSERT INTO menu_items " +
-                "(restaurant_id, name, description, price, category, image_path, " +
+                "(restaurant_id, name, description, price, discount_amount, category, image_path, " +
                 " is_veg, is_available, display_order) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, new String[]{"id"})) {
             ps.setLong(1, item.getRestaurantId());
             ps.setString(2, item.getName());
             ps.setString(3, item.getDescription());
             ps.setBigDecimal(4, item.getPrice());
-            ps.setString(5, item.getCategory());
-            ps.setString(6, item.getImagePath());
-            ps.setInt(7, item.isVeg() ? 1 : 0);
-            ps.setInt(8, item.isAvailable() ? 1 : 0);
-            ps.setInt(9, item.getDisplayOrder());
+            ps.setBigDecimal(5, item.getDiscountAmount());
+            ps.setString(6, item.getCategory());
+            ps.setString(7, item.getImagePath());
+            ps.setInt(8, item.isVeg() ? 1 : 0);
+            ps.setInt(9, item.isAvailable() ? 1 : 0);
+            ps.setInt(10, item.getDisplayOrder());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getLong(1);
@@ -75,7 +76,7 @@ public class MenuItemDAO {
     /** restaurantId in WHERE clause prevents cross-tenant updates. */
     public void update(MenuItem item) throws SQLException {
         String sql = "UPDATE menu_items " +
-                "SET name=?, description=?, price=?, category=?, image_path=?, " +
+                "SET name=?, description=?, price=?, discount_amount=?, category=?, image_path=?, " +
                 "    is_veg=?, is_available=?, display_order=? " +
                 "WHERE id=? AND restaurant_id=?";
         try (Connection conn = DBConnection.getConnection();
@@ -83,13 +84,14 @@ public class MenuItemDAO {
             ps.setString(1, item.getName());
             ps.setString(2, item.getDescription());
             ps.setBigDecimal(3, item.getPrice());
-            ps.setString(4, item.getCategory());
-            ps.setString(5, item.getImagePath());
-            ps.setInt(6, item.isVeg() ? 1 : 0);
-            ps.setInt(7, item.isAvailable() ? 1 : 0);
-            ps.setInt(8, item.getDisplayOrder());
-            ps.setLong(9, item.getId());
-            ps.setLong(10, item.getRestaurantId());
+            ps.setBigDecimal(4, item.getDiscountAmount());
+            ps.setString(5, item.getCategory());
+            ps.setString(6, item.getImagePath());
+            ps.setInt(7, item.isVeg() ? 1 : 0);
+            ps.setInt(8, item.isAvailable() ? 1 : 0);
+            ps.setInt(9, item.getDisplayOrder());
+            ps.setLong(10, item.getId());
+            ps.setLong(11, item.getRestaurantId());
             ps.executeUpdate();
         }
     }
@@ -123,6 +125,7 @@ public class MenuItemDAO {
         item.setName(rs.getString("name"));
         item.setDescription(rs.getString("description"));
         item.setPrice(rs.getBigDecimal("price"));
+        item.setDiscountAmount(rs.getBigDecimal("discount_amount"));
         item.setCategory(rs.getString("category"));
         item.setImagePath(rs.getString("image_path"));
         item.setVeg(rs.getInt("is_veg") == 1);
