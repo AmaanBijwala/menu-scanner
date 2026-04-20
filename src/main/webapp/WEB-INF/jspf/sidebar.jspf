@@ -1,3 +1,9 @@
+<%-- Mobile Top Bar (visible only on mobile via CSS) --%>
+<header class="mobile-header">
+    <span class="mob-brand">Menu Scanner</span>
+    <div class="mob-avatar">&#128100;</div>
+</header>
+
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
         <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
@@ -35,6 +41,30 @@
     </div>
 </aside>
 
+<%-- Mobile Bottom Navigation (visible only on mobile via CSS) --%>
+<nav class="bottom-nav">
+    <a href="${pageContext.request.contextPath}/dashboard" class="bn-item" id="bn-dashboard">
+        <span class="bn-icon">&#9632;</span>
+        <span class="bn-label">Home</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/menu-items" class="bn-item" id="bn-menu">
+        <span class="bn-icon">&#127869;</span>
+        <span class="bn-label">Menu</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/customers" class="bn-item" id="bn-leads">
+        <span class="bn-icon">&#128101;</span>
+        <span class="bn-label">Leads</span>
+    </a>
+    <div class="bn-item bn-logout-wrap">
+        <form method="post" action="${pageContext.request.contextPath}/logout">
+            <button type="submit" class="bn-logout-btn">
+                <span class="bn-icon">&#128100;</span>
+                <span class="bn-label">Profile</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
 <script>
 (function() {
     if (localStorage.getItem('sidebarCollapsed') === 'true') {
@@ -43,8 +73,18 @@
 })();
 
 function toggleSidebar() {
-    const s = document.getElementById('sidebar');
+    var s = document.getElementById('sidebar');
     s.classList.toggle('collapsed');
     localStorage.setItem('sidebarCollapsed', s.classList.contains('collapsed'));
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var path = window.location.pathname;
+    var bnDash  = document.getElementById('bn-dashboard');
+    var bnMenu  = document.getElementById('bn-menu');
+    var bnLeads = document.getElementById('bn-leads');
+    if (path.indexOf('/dashboard') !== -1 && bnDash)  bnDash.classList.add('active');
+    if (path.indexOf('/menu-items') !== -1 && bnMenu)  bnMenu.classList.add('active');
+    if (path.indexOf('/customers')  !== -1 && bnLeads) bnLeads.classList.add('active');
+});
 </script>

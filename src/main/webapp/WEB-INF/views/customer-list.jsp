@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
 <div class="admin-layout">
@@ -34,6 +35,17 @@
                 <div class="alert alert-error"><c:out value="${error}"/></div>
             </c:if>
 
+            <%-- Search & Export row --%>
+            <div class="leads-toolbar">
+                <div class="leads-search-wrap">
+                    <span class="leads-search-icon">&#128269;</span>
+                    <input type="text" id="customerSearch" class="leads-search-input" placeholder="Search by name or phone...">
+                </div>
+                <a href="${pageContext.request.contextPath}/customers/export" class="btn btn-secondary leads-export-btn">
+                    &#8615; Export CSV
+                </a>
+            </div>
+
             <c:choose>
                 <c:when test="${empty customers}">
                     <div class="card">
@@ -41,7 +53,7 @@
                     </div>
                 </c:when>
                 <c:otherwise>
-                    <div class="customer-cards">
+                    <div class="customer-cards" id="customerList">
                         <c:forEach var="c" items="${customers}">
                             <div class="customer-card">
                                 <div class="customer-avatar">
@@ -57,22 +69,42 @@
                                         <c:if test="${c.age > 0}"> · Age <c:out value="${c.age}"/></c:if>
                                         <c:if test="${not empty c.gender}"> · <c:out value="${c.gender}"/></c:if>
                                     </div>
-                                    <div class="customer-phone">📞 <c:out value="${c.phone}"/></div>
+                                    <div class="customer-phone">&#128222; <c:out value="${c.phone}"/></div>
                                 </div>
                                 <div class="customer-consent">
                                     <c:choose>
-                                        <c:when test="${c.consentWhatsapp}"><span class="badge veg">WA ✓</span></c:when>
+                                        <c:when test="${c.consentWhatsapp}"><span class="badge veg">WA &#10003;</span></c:when>
                                         <c:otherwise><span class="badge">No WA</span></c:otherwise>
                                     </c:choose>
                                 </div>
                             </div>
                         </c:forEach>
                     </div>
+                    <p id="noResults" class="empty-state" style="display:none">No customers match your search.</p>
                 </c:otherwise>
             </c:choose>
 
         </main>
     </div>
 </div>
+
+<script>
+$(function () {
+    $('#customerSearch').on('input', function () {
+        var q = $(this).val().toLowerCase().trim();
+        var count = 0;
+        $('.customer-card').each(function () {
+            var name  = $(this).find('.customer-name').text().toLowerCase();
+            var phone = $(this).find('.customer-phone').text().toLowerCase();
+            var show  = !q || name.indexOf(q) !== -1 || phone.indexOf(q) !== -1;
+            $(this).toggle(show);
+            if (show) count++;
+        });
+        $('#noResults').toggle(count === 0 && q.length > 0);
+    });
+});
+</script>
+<script>const contextPath = '${pageContext.request.contextPath}';</script>
+<script src="${pageContext.request.contextPath}/js/app.js"></script>
 </body>
 </html>

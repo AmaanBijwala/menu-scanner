@@ -1603,3 +1603,231 @@ img { display: block; max-width: 100%; }
   .nav-links { gap: 0; }
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* ─── Customer Leads Toolbar (all sizes) ─────────────────────────────────── */
+.leads-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.leads-search-wrap {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+
+.leads-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--on-surface-muted);
+  pointer-events: none;
+}
+
+.leads-search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.4rem;
+  background: var(--surface-container-lowest);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-family: var(--font);
+  color: var(--on-surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.leads-search-input:focus {
+  outline: none;
+  border-color: rgba(245,124,0,0.45);
+  box-shadow: 0 0 0 3px rgba(245,124,0,0.08);
+}
+.leads-search-input::placeholder { color: var(--on-surface-muted); }
+
+/* ─── Mobile Components (hidden on desktop) ─────────────────────────────── */
+.mobile-header { display: none; }
+.bottom-nav    { display: none; }
+
+/* ─── Mobile Admin Layout (≤ 768px) ─────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* ── Mobile Top Bar ── */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3.25rem;
+    background: rgba(13,13,13,0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 0 1.1rem;
+    z-index: 300;
+  }
+
+  .mob-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    white-space: nowrap;
+  }
+
+  .mob-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background: var(--gradient-cta);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #fff;
+    margin-left: auto;
+  }
+
+  /* ── Bottom Navigation ── */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 4.25rem;
+    background: var(--surface-container-lowest);
+    border-top: 1px solid var(--outline-variant);
+    z-index: 300;
+  }
+
+  .bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    color: var(--on-surface-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .bn-item:hover { color: var(--on-surface); text-decoration: none; }
+  .bn-item.active { color: var(--primary-container); }
+
+  .bn-icon  { font-size: 1.25rem; line-height: 1; }
+  .bn-label {
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .bn-logout-wrap { padding: 0; overflow: hidden; }
+  .bn-logout-wrap form { width: 100%; height: 100%; display: flex; }
+
+  .bn-logout-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    color: var(--on-surface-muted);
+    font-family: var(--font);
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    transition: color 0.15s;
+  }
+  .bn-logout-btn:hover { color: var(--on-surface); }
+
+  /* ── Admin Layout ── */
+  .sidebar { display: none !important; }
+  .admin-layout { display: block; }
+  .admin-main {
+    padding-top: 3.5rem;
+    padding-bottom: 5rem;
+  }
+
+  /* ── General ── */
+  .container { padding: 1.25rem 1rem; }
+
+  /* ── Dashboard ── */
+  .welcome-heading { font-size: 1.6rem; }
+  .stat-number { font-size: 2.75rem; }
+  .stats-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .qr-actions { flex-direction: column; }
+  .qr-actions .btn, .qr-actions a { width: 100%; text-align: center; }
+
+  /* ── Page header ── */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .page-header h1 { font-size: 1.75rem; }
+
+  /* ── Menu Manager Hero ── */
+  .mm-hero { padding: 1.5rem 1rem 1rem; }
+  .mm-hero h1 { font-size: clamp(1.6rem, 7vw, 2.5rem); }
+  .mm-alerts { padding: 0 1rem; }
+
+  /* ── Category Panel ── */
+  .mm-category-panel { padding: 1rem; }
+  .mm-category-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .mm-cat-add-form { width: 100%; }
+
+  /* ── Bulk Panel ── */
+  .mm-bulk-header { padding: 0.75rem 1rem; }
+  .mm-bulk-body   { padding: 0 1rem 1rem; }
+  .mm-bulk-row    { flex-direction: column; align-items: stretch; }
+  .mm-bulk-file-wrap { width: 100%; }
+  .mm-bulk-file-label { max-width: 100%; width: 100%; box-sizing: border-box; }
+
+  /* ── Add Form ── */
+  .mm-form-panel { padding: 1.5rem 1rem; }
+  .mm-form-inner {
+    grid-template-columns: 1fr;
+  }
+  .mm-form-inner > div:first-child { order: 2; }
+  .mm-form-inner > .mm-form-fields { order: 1; }
+  .upload-area-tall { min-height: 180px; margin-top: 1rem; }
+
+  /* Squash 3-col price row into 2-col on mobile */
+  .mm-price-row { grid-template-columns: 1fr 1fr !important; }
+  .mm-price-row .form-group:last-child { grid-column: 1 / -1; }
+
+  /* ── Collection ── */
+  .mm-collection-panel { padding: 1.5rem 1rem; }
+  .collection-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+  /* ── Customer leads toolbar ── */
+  .leads-toolbar { flex-direction: column; align-items: stretch; }
+  .leads-export-btn { text-align: center; }
+
+  /* ── Toast above bottom nav ── */
+  .upload-toast {
+    bottom: 5.25rem;
+    right: 1rem;
+    left: 1rem;
+    text-align: center;
+  }
+
+  /* ── Public Menu ── */
+  .menu-header { padding: 1rem; position: static; }
+  .menu-container { padding: 1rem 0.75rem 5rem; }
+}
+
+@media (max-width: 420px) {
+  .collection-grid { grid-template-columns: 1fr; }
+  .mm-price-row { grid-template-columns: 1fr !important; }
+  .mm-price-row .form-group:last-child { grid-column: 1; }
+}

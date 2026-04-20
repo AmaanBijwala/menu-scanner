@@ -10,12 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
 <div class="admin-layout">
 
     <%@ include file="/WEB-INF/jspf/sidebar.jspf" %>
     <script>document.getElementById('nav-dashboard').classList.add('active');</script>
+    <script>$(function(){ $('#bn-dashboard').addClass('active'); });</script>
 
     <div class="admin-main">
         <main class="container">
@@ -72,14 +74,15 @@
 
 <script>
 function copyUrl() {
-    const url = document.getElementById('menuUrl').textContent.trim();
-    navigator.clipboard.writeText(url).then(() => {
-        const btn = document.querySelector('.url-copy-btn');
-        btn.textContent = '✓';
-        btn.style.color = '#f57c00';
-        setTimeout(() => { btn.textContent = '⎘'; btn.style.color = ''; }, 2000);
+    var url = $('#menuUrl').text().trim();
+    navigator.clipboard.writeText(url).then(function () {
+        var $btn = $('.url-copy-btn');
+        $btn.text('✓').css('color', '#f57c00');
+        setTimeout(function () { $btn.text('⎘').css('color', ''); }, 2000);
     });
 }
 </script>
+<script>const contextPath = '${pageContext.request.contextPath}';</script>
+<script src="${pageContext.request.contextPath}/js/app.js"></script>
 </body>
 </html>
