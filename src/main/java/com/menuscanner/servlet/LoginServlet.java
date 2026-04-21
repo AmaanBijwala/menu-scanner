@@ -51,8 +51,9 @@ public class LoginServlet extends HttpServlet {
                 if (old != null) old.invalidate();
 
                 HttpSession session = req.getSession(true);
-                session.setAttribute("restaurantId",   restaurant.getId());
+                session.setAttribute("restaurantId",    restaurant.getId());
                 session.setAttribute("restaurantName", restaurant.getName());
+                session.setAttribute("restaurantEmail",restaurant.getEmail());
                 session.setAttribute("planType",       restaurant.getPlanType());
                 session.setAttribute("slug",           restaurant.getSlug());
                 session.setMaxInactiveInterval(1_800); // 30 min

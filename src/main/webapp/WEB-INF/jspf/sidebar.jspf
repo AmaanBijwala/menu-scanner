@@ -1,7 +1,7 @@
 <%-- Mobile Top Bar (visible only on mobile via CSS) --%>
 <header class="mobile-header">
     <span class="mob-brand">Menu Scanner</span>
-    <div class="mob-avatar">&#128100;</div>
+    <button class="mob-avatar" id="profileTriggerMob" onclick="toggleProfileCard(event)" aria-label="Profile">&#128100;</button>
 </header>
 
 <aside class="sidebar" id="sidebar">
@@ -56,14 +56,35 @@
         <span class="bn-label">Leads</span>
     </a>
     <div class="bn-item bn-logout-wrap">
-        <form method="post" action="${pageContext.request.contextPath}/logout">
-            <button type="submit" class="bn-logout-btn">
-                <span class="bn-icon">&#128100;</span>
-                <span class="bn-label">Profile</span>
-            </button>
-        </form>
+        <button type="button" class="bn-logout-btn" id="profileTriggerBnav" onclick="toggleProfileCard(event)">
+            <span class="bn-icon">&#128100;</span>
+            <span class="bn-label">Profile</span>
+        </button>
     </div>
 </nav>
+
+<%-- Desktop profile avatar trigger (top-right, desktop only) --%>
+<button class="profile-avatar-btn" id="profileTrigger" onclick="toggleProfileCard(event)" aria-label="Profile">
+    &#128100;
+</button>
+
+<%-- Profile dropdown card --%>
+<div class="profile-card" id="profileCard">
+    <div class="profile-card-header">
+        <div class="profile-card-avatar">&#128100;</div>
+        <div class="profile-card-info">
+            <span class="profile-card-name"><c:out value="${sessionScope.restaurantName}"/></span>
+            <span class="profile-card-email"><c:out value="${sessionScope.restaurantEmail}"/></span>
+        </div>
+    </div>
+    <div class="profile-card-plan">
+        <span class="plan-badge plan-<c:out value="${sessionScope.planType}"/>"><c:out value="${sessionScope.planType}"/> Plan</span>
+    </div>
+    <div class="profile-card-divider"></div>
+    <form method="post" action="${pageContext.request.contextPath}/logout" class="profile-card-logout">
+        <button type="submit">&#8617;&nbsp; Logout</button>
+    </form>
+</div>
 
 <script>
 (function() {
@@ -71,6 +92,22 @@
         document.getElementById('sidebar').classList.add('collapsed');
     }
 })();
+
+function toggleProfileCard(e) {
+    e.stopPropagation();
+    var card = document.getElementById('profileCard');
+    card.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+    var card = document.getElementById('profileCard');
+    if (card && card.classList.contains('open') &&
+        !card.contains(e.target) &&
+        e.target.id !== 'profileTrigger' &&
+        e.target.id !== 'profileTriggerMob') {
+        card.classList.remove('open');
+    }
+});
 
 function toggleSidebar() {
     var s = document.getElementById('sidebar');
