@@ -45,20 +45,11 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!--
-            Oracle JDBC Driver.
-            Available on Maven Central from Oracle 19c onwards.
-            If download fails, install manually:
-            mvn install:install-file -Dfile=ojdbc11.jar \
-              -DgroupId=com.oracle.database.jdbc \
-              -DartifactId=ojdbc11 \
-              -Dversion=23.3.0.23.09 \
-              -Dpackaging=jar
-        -->
+        <!-- PostgreSQL JDBC Driver -->
         <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <version>23.3.0.23.09</version>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.1</version>
         </dependency>
 
         <!-- HikariCP — JDBC connection pooling -->

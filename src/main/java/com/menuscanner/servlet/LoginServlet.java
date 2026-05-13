@@ -24,7 +24,7 @@ public class LoginServlet extends HttpServlet {
         // Already logged in → skip login page
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("restaurantId") != null) {
-            resp.sendRedirect(req.getContextPath() + "/dashboard");
+            resp.sendRedirect(buildBaseUrl(req) + "/dashboard");
             return;
         }
         req.getRequestDispatcher("/public/login.jsp").forward(req, resp);
@@ -58,7 +58,7 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("slug",           restaurant.getSlug());
                 session.setMaxInactiveInterval(1_800); // 30 min
 
-                resp.sendRedirect(req.getContextPath() + "/dashboard");
+                resp.sendRedirect(buildBaseUrl(req) + "/dashboard");
             } else {
                 req.setAttribute("error", "Invalid email or password.");
                 req.getRequestDispatcher("/public/login.jsp").forward(req, resp);
@@ -72,5 +72,22 @@ public class LoginServlet extends HttpServlet {
 
     private boolean isBlank(String s) {
         return s == null || s.isBlank();
+    }
+
+    /** Builds the public base URL, honouring reverse-proxy headers when present. */
+    private String buildBaseUrl(HttpServletRequest req) {
+        String proto = req.getHeader("X-Forwarded-Proto");
+        if (proto == null || proto.isBlank()) proto = req.getScheme();
+
+        String host = req.getHeader("X-Forwarded-Host");
+        if (host == null || host.isBlank()) {
+            host = req.getServerName();
+            int port = req.getServerPort();
+            boolean stdPort = ("https".equals(proto) && port == 443)
+                           || ("http".equals(proto)  && port == 80);
+            if (!stdPort) host = host + ":" + port;
+        }
+
+        return proto + "://" + host + req.getContextPath();
     }
 }

@@ -1798,13 +1798,21 @@ img { display: block; max-width: 100%; }
     width: 2rem;
     height: 2rem;
     border-radius: var(--radius-full);
-    background: var(--gradient-cta);
+    background: var(--surface-container-high);
+    border: 1.5px solid var(--outline-variant);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.9rem;
-    color: #fff;
+    color: var(--on-surface-muted);
     margin-left: auto;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .mob-avatar:hover {
+    background: var(--surface-container-highest);
+    border-color: var(--primary-container);
+    color: var(--primary-container);
   }
 
   /* ── Bottom Navigation ── */
@@ -1937,14 +1945,15 @@ img { display: block; max-width: 100%; }
   .menu-header { padding: 1rem; position: static; }
   .menu-container { padding: 1rem 0.75rem 5rem; }
 
-  /* ── Profile card (mobile: bottom-anchored) ── */
+  /* ── Profile card (mobile: drops from top-right avatar) ── */
   .profile-avatar-btn { display: none !important; }
   .profile-card {
-    bottom: 5.5rem;
-    top: auto;
+    top: 3.75rem;
+    bottom: auto;
     right: 0.75rem;
-    left: 0.75rem;
-    width: auto;
+    left: auto;
+    width: calc(100vw - 1.5rem);
+    max-width: 300px;
   }
 }
 

@@ -28,7 +28,7 @@ public class DBConnection {
             props.load(is);
 
             HikariConfig config = new HikariConfig();
-            config.setDriverClassName("oracle.jdbc.OracleDriver");
+            config.setDriverClassName("org.postgresql.Driver");
             config.setJdbcUrl(props.getProperty("db.url"));
             config.setUsername(props.getProperty("db.username"));
             config.setPassword(props.getProperty("db.password"));
@@ -37,11 +37,6 @@ public class DBConnection {
             config.setConnectionTimeout(30_000);
             config.setIdleTimeout(600_000);
             config.setMaxLifetime(1_800_000);
-
-            // Oracle-specific performance hints
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             dataSource = new HikariDataSource(config);
 

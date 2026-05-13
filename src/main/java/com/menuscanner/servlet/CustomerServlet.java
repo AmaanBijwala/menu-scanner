@@ -20,7 +20,7 @@ public class CustomerServlet extends HttpServlet {
             throws ServletException, IOException {
         long restaurantId = (long) req.getSession().getAttribute("restaurantId");
         try {
-            req.setAttribute("customers", customerDAO.findByRestaurantId(restaurantId));
+            req.setAttribute(   "customers", customerDAO.findByRestaurantId(restaurantId));
             req.setAttribute("customerCount", customerDAO.countByRestaurantId(restaurantId));
         } catch (SQLException e) {
             getServletContext().log("Customer list error", e);
