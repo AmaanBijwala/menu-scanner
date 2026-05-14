@@ -12,6 +12,7 @@ CREATE TABLE restaurants (
     password_hash    VARCHAR(255)    NOT NULL,
     phone            VARCHAR(15),
     plan_type        VARCHAR(20)     DEFAULT 'BASIC' NOT NULL,  -- BASIC | PRO
+    social_whatsapp  VARCHAR(20),
     social_instagram VARCHAR(255),
     social_facebook  VARCHAR(255),
     social_youtube   VARCHAR(255),

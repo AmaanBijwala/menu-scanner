@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
+import javax.imageio.ImageIO;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -46,6 +47,10 @@ public class ImageUploadServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        // Flush stale ImageIO SPI providers left by previous hot-deploys and
+        // re-register all plugins under this webapp's classloader.
+        ImageIO.scanForPlugins();
+
         try (InputStream is = getClass().getClassLoader()
                 .getResourceAsStream("application.properties")) {
             Properties props = new Properties();
@@ -90,9 +95,13 @@ public class ImageUploadServlet extends HttpServlet {
             return;
         }
 
-        // Read first 4 bytes for magic-byte check without consuming the full stream
-        byte[] header = filePart.getInputStream().readNBytes(4);
-        if (!isValidImageHeader(header)) {
+        // Read entire upload into memory so the same bytes can be used for both
+        // the magic-byte check and the downstream Thumbnailator resize.
+        byte[] imageBytes;
+        try (InputStream raw = filePart.getInputStream()) {
+            imageBytes = raw.readAllBytes();
+        }
+        if (!isValidImageHeader(imageBytes)) {
             sendError(resp, "File content does not match a valid JPEG or PNG.");
             return;
         }
@@ -101,7 +110,7 @@ public class ImageUploadServlet extends HttpServlet {
         String relativePath = restaurantId + "/" + UUID.randomUUID() + ".jpg";
         File   targetFile   = new File(uploadBasePath, relativePath);
 
-        try (InputStream in = filePart.getInputStream()) {
+        try (InputStream in = new ByteArrayInputStream(imageBytes)) {
             ImageProcessor.saveResized(in, targetFile);
         }
 
@@ -125,14 +134,14 @@ public class ImageUploadServlet extends HttpServlet {
         return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png");
     }
 
-    private boolean isValidImageHeader(byte[] h) {
-        if (h.length >= 3
-                && h[0] == JPEG_MAGIC[0] && h[1] == JPEG_MAGIC[1] && h[2] == JPEG_MAGIC[2]) {
+    private boolean isValidImageHeader(byte[] data) {
+        if (data.length >= 3
+                && data[0] == JPEG_MAGIC[0] && data[1] == JPEG_MAGIC[1] && data[2] == JPEG_MAGIC[2]) {
             return true; // JPEG
         }
-        return h.length >= 4
-                && h[0] == PNG_MAGIC[0] && h[1] == PNG_MAGIC[1]
-                && h[2] == PNG_MAGIC[2] && h[3] == PNG_MAGIC[3]; // PNG
+        return data.length >= 4
+                && data[0] == PNG_MAGIC[0] && data[1] == PNG_MAGIC[1]
+                && data[2] == PNG_MAGIC[2] && data[3] == PNG_MAGIC[3]; // PNG
     }
 
     private void sendError(HttpServletResponse resp, String message) throws IOException {

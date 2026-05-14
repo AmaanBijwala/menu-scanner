@@ -83,6 +83,15 @@
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
+            <exclusions>
+                <!-- jai-imageio-core registers JVM-wide ImageIO SPI providers that
+                     become stale after hot-redeploy, causing ClassNotFoundExceptions.
+                     ZXing only needs it for exotic input formats; QR output is unaffected. -->
+                <exclusion>
+                    <groupId>com.github.jai-imageio</groupId>
+                    <artifactId>jai-imageio-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Commons FileUpload (multipart form handling) -->

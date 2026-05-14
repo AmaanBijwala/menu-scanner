@@ -46,8 +46,8 @@ public class RestaurantDAO {
     public long save(Restaurant r) throws SQLException {
         String sql = "INSERT INTO restaurants " +
                 "(name, slug, email, password_hash, phone, plan_type, " +
-                " social_instagram, social_facebook, social_youtube, social_twitter) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                " social_whatsapp, social_instagram, social_facebook, social_youtube, social_twitter) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, new String[]{"id"})) {
             ps.setString(1, r.getName());
@@ -56,10 +56,11 @@ public class RestaurantDAO {
             ps.setString(4, r.getPasswordHash());
             ps.setString(5, r.getPhone());
             ps.setString(6, r.getPlanType() != null ? r.getPlanType() : "BASIC");
-            ps.setString(7, r.getSocialInstagram());
-            ps.setString(8, r.getSocialFacebook());
-            ps.setString(9, r.getSocialYoutube());
-            ps.setString(10, r.getSocialTwitter());
+            ps.setString(7, r.getSocialWhatsapp());
+            ps.setString(8, r.getSocialInstagram());
+            ps.setString(9, r.getSocialFacebook());
+            ps.setString(10, r.getSocialYoutube());
+            ps.setString(11, r.getSocialTwitter());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getLong(1);
@@ -70,18 +71,29 @@ public class RestaurantDAO {
 
     public void update(Restaurant r) throws SQLException {
         String sql = "UPDATE restaurants " +
-                "SET name=?, phone=?, social_instagram=?, social_facebook=?, " +
-                "    social_youtube=?, social_twitter=? " +
+                "SET name=?, phone=?, social_whatsapp=?, social_instagram=?, " +
+                "    social_facebook=?, social_youtube=?, social_twitter=? " +
                 "WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, r.getName());
             ps.setString(2, r.getPhone());
-            ps.setString(3, r.getSocialInstagram());
-            ps.setString(4, r.getSocialFacebook());
-            ps.setString(5, r.getSocialYoutube());
-            ps.setString(6, r.getSocialTwitter());
-            ps.setLong(7, r.getId());
+            ps.setString(3, r.getSocialWhatsapp());
+            ps.setString(4, r.getSocialInstagram());
+            ps.setString(5, r.getSocialFacebook());
+            ps.setString(6, r.getSocialYoutube());
+            ps.setString(7, r.getSocialTwitter());
+            ps.setLong(8, r.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePassword(long id, String newHash) throws SQLException {
+        String sql = "UPDATE restaurants SET password_hash=? WHERE id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newHash);
+            ps.setLong(2, id);
             ps.executeUpdate();
         }
     }
@@ -95,6 +107,7 @@ public class RestaurantDAO {
         r.setPasswordHash(rs.getString("password_hash"));
         r.setPhone(rs.getString("phone"));
         r.setPlanType(rs.getString("plan_type"));
+        r.setSocialWhatsapp(rs.getString("social_whatsapp"));
         r.setSocialInstagram(rs.getString("social_instagram"));
         r.setSocialFacebook(rs.getString("social_facebook"));
         r.setSocialYoutube(rs.getString("social_youtube"));

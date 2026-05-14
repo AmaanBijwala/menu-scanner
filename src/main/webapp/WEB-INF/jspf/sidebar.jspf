@@ -30,6 +30,10 @@
             <span class="sidebar-nav-icon">&#128227;</span>
             <span class="sidebar-nav-label">Campaigns</span>
         </a>
+        <a href="${pageContext.request.contextPath}/profile" id="nav-profile">
+            <span class="sidebar-nav-icon">&#9881;</span>
+            <span class="sidebar-nav-label">Profile</span>
+        </a>
     </nav>
     <div class="sidebar-footer">
         <form method="post" action="${pageContext.request.contextPath}/logout">
@@ -80,6 +84,8 @@
     <div class="profile-card-plan">
         <span class="plan-badge plan-<c:out value="${sessionScope.planType}"/>"><c:out value="${sessionScope.planType}"/> Plan</span>
     </div>
+    <div class="profile-card-divider"></div>
+    <a href="${pageContext.request.contextPath}/profile" class="profile-card-settings">&#9881;&nbsp; Profile Settings</a>
     <div class="profile-card-divider"></div>
     <form method="post" action="${pageContext.request.contextPath}/logout" class="profile-card-logout">
         <button type="submit">&#8617;&nbsp; Logout</button>

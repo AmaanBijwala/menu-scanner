@@ -10,6 +10,7 @@ public class Restaurant {
     private String passwordHash;
     private String phone;
     private String planType;          // "BASIC" or "PRO"
+    private String socialWhatsapp;
     private String socialInstagram;
     private String socialFacebook;
     private String socialYoutube;
@@ -39,6 +40,9 @@ public class Restaurant {
 
     public String getPlanType()                  { return planType; }
     public void setPlanType(String planType)     { this.planType = planType; }
+
+    public String getSocialWhatsapp()            { return socialWhatsapp; }
+    public void setSocialWhatsapp(String v)      { this.socialWhatsapp = v; }
 
     public String getSocialInstagram()           { return socialInstagram; }
     public void setSocialInstagram(String v)     { this.socialInstagram = v; }
