@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c"   uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn"  uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,6 +54,31 @@
     </div>
 </header>
 
+<%-- Public Gallery Strip --%>
+<c:if test="${not empty galleryImages}">
+<section class="pub-gallery-strip" aria-label="Restaurant photos">
+    <div class="pub-gallery-scroll">
+        <c:forEach var="img" items="${galleryImages}">
+            <button class="pub-gallery-thumb" onclick="openLightbox('${pageContext.request.contextPath}/images/<c:out value="${img.imagePath}"/>', '<c:out value="${fn:escapeXml(img.caption)}"/>')" aria-label="<c:out value="${empty img.caption ? 'Restaurant photo' : img.caption}"/>">
+                <img src="${pageContext.request.contextPath}/images/<c:out value="${img.imagePath}"/>"
+                     alt="<c:out value="${empty img.caption ? 'Restaurant photo' : img.caption}"/>"
+                     loading="lazy">
+                <c:if test="${not empty img.caption}">
+                    <span class="pub-gallery-thumb-cap"><c:out value="${img.caption}"/></span>
+                </c:if>
+            </button>
+        </c:forEach>
+    </div>
+</section>
+
+<%-- Lightbox --%>
+<div id="pubLightbox" class="pub-lightbox" style="display:none" onclick="closeLightbox()">
+    <button class="pub-lightbox-close" onclick="closeLightbox()" aria-label="Close">&#10005;</button>
+    <img id="pubLightboxImg" src="" alt="" onclick="event.stopPropagation()">
+    <p id="pubLightboxCap" class="pub-lightbox-cap"></p>
+</div>
+</c:if>
+
 <main class="menu-container">
     <c:choose>
         <c:when test="${empty menuItems}">
@@ -67,7 +93,16 @@
                         <h2 class="category-heading"><c:out value="${empty item.category ? 'Our Menu' : item.category}"/></h2>
                     </c:if>
 
-                    <div class="menu-card">
+                    <div class="menu-card menu-card-clickable"
+                         onclick="openItemModal(this)"
+                         data-name="<c:out value="${fn:escapeXml(item.name)}"/>"
+                         data-desc="<c:out value="${fn:escapeXml(item.description)}"/>"
+                         data-price="${item.price}"
+                         data-final="${item.finalPrice}"
+                         data-disc="${item.discountPercent}"
+                         data-img="${not empty item.imagePath ? pageContext.request.contextPath.concat('/images/').concat(item.imagePath) : ''}"
+                         data-veg="${item.veg}"
+                         data-cat="<c:out value="${fn:escapeXml(item.category)}"/>">
                         <c:if test="${not empty item.imagePath}">
                             <img src="${pageContext.request.contextPath}/images/<c:out value="${item.imagePath}"/>"
                                  alt="<c:out value="${item.name}"/>" class="menu-item-img" loading="lazy">
@@ -145,7 +180,119 @@
     </div>
 </div>
 
-<script>const contextPath = '${pageContext.request.contextPath}';</script>
+<%-- ─── Menu Item Detail Modal ─────────────────────────────────────────────── --%>
+<div id="itemModal" class="im-overlay" onclick="closeItemModal()">
+    <div class="im-box" onclick="event.stopPropagation()" role="dialog" aria-modal="true">
+        <button class="im-close" onclick="closeItemModal()" aria-label="Close">&#10005;</button>
+
+        <div class="im-img-wrap" id="imImgWrap">
+            <img id="imImg" src="" alt="">
+            <span id="imVegDot" class="veg-indicator im-veg-dot"></span>
+        </div>
+
+        <div class="im-body">
+            <div class="im-meta">
+                <span id="imVegInline" class="veg-indicator"></span>
+                <span id="imCat" class="im-cat"></span>
+            </div>
+            <h2 id="imName" class="im-name"></h2>
+            <div id="imPrice" class="im-price-block"></div>
+            <p  id="imDesc" class="im-desc"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+const contextPath = '${pageContext.request.contextPath}';
+function openLightbox(src, cap) {
+    document.getElementById('pubLightboxImg').src = src;
+    document.getElementById('pubLightboxCap').textContent = cap || '';
+    document.getElementById('pubLightbox').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+    document.getElementById('pubLightbox').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){ closeLightbox(); closeItemModal(); }
+});
+
+function fmt(n) {
+    return '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:0});
+}
+
+function openItemModal(card) {
+    var d = card.dataset;
+    var hasImg = d.img && d.img.length > 0;
+
+    // Image
+    var imgWrap = document.getElementById('imImgWrap');
+    var imgEl   = document.getElementById('imImg');
+    if (hasImg) {
+        imgEl.src = d.img;
+        imgEl.alt = d.name;
+        imgWrap.style.display = 'block';
+    } else {
+        imgWrap.style.display = 'none';
+    }
+
+    // Veg indicator
+    var isVeg = d.veg === 'true';
+    document.getElementById('imVegDot').className   = 'veg-indicator im-veg-dot ' + (isVeg ? 'veg' : 'nonveg');
+    document.getElementById('imVegInline').className = 'veg-indicator ' + (isVeg ? 'veg' : 'nonveg');
+
+    // Category
+    var catEl = document.getElementById('imCat');
+    catEl.textContent = d.cat || '';
+    catEl.style.display = d.cat ? 'inline-block' : 'none';
+
+    // Name
+    document.getElementById('imName').textContent = d.name;
+
+    // Price
+    var disc = parseFloat(d.disc) || 0;
+    var priceHtml;
+    if (disc > 0) {
+        priceHtml = '<span class="im-price-final">' + fmt(d.final) + '</span>'
+                  + '<span class="im-price-was">' + fmt(d.price) + '</span>'
+                  + '<span class="im-price-badge">' + Math.round(disc) + '% off</span>';
+    } else {
+        priceHtml = '<span class="im-price-final">' + fmt(d.price) + '</span>';
+    }
+    document.getElementById('imPrice').innerHTML = priceHtml;
+
+    // Description
+    var descEl = document.getElementById('imDesc');
+    descEl.textContent = d.desc || '';
+    descEl.style.display = d.desc ? 'block' : 'none';
+
+    // Show with animation
+    var overlay = document.getElementById('itemModal');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() { overlay.classList.add('open'); });
+    });
+    document.body.style.overflow = 'hidden';
+}
+
+function closeItemModal() {
+    var overlay = document.getElementById('itemModal');
+    overlay.classList.remove('open');
+    setTimeout(function() { overlay.style.display = 'none'; }, 320);
+    document.body.style.overflow = '';
+}
+</script>
 <script src="${pageContext.request.contextPath}/js/app.js"></script>
+<script>
+(function() {
+    var ids = [<c:forEach items="${menuItems}" var="i" varStatus="s">${i.id}<c:if test="${!s.last}">,</c:if></c:forEach>];
+    if (!ids.length) return;
+    var fd = new FormData();
+    fd.append('slug', '<c:out value="${restaurant.slug}"/>');
+    fd.append('ids', ids.join(','));
+    fetch(contextPath + '/track-items', { method: 'POST', body: fd, keepalive: true });
+})();
+</script>
 </body>
 </html>

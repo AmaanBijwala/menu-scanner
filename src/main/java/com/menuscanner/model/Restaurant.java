@@ -17,6 +17,7 @@ public class Restaurant {
     private String socialTwitter;
     private Timestamp createdAt;
     private boolean active;
+    private int dishCount;
 
     public Restaurant() {}
 
@@ -61,4 +62,7 @@ public class Restaurant {
 
     public boolean isActive()                    { return active; }
     public void setActive(boolean active)        { this.active = active; }
+
+    public int getDishCount()                    { return dishCount; }
+    public void setDishCount(int dishCount)      { this.dishCount = dishCount; }
 }

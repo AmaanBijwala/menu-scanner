@@ -100,6 +100,19 @@ CREATE TABLE categories (
 
 CREATE INDEX idx_categories_restaurant ON categories (restaurant_id);
 
+-- ── 7. item_view_counts ─────────────────────────────────────────────
+-- One row per menu item; view_count incremented on every public menu load.
+CREATE TABLE item_view_counts (
+    item_id       BIGINT    PRIMARY KEY,
+    restaurant_id BIGINT    NOT NULL,
+    view_count    BIGINT    DEFAULT 0 NOT NULL,
+    last_viewed   TIMESTAMP,
+    CONSTRAINT fk_ivc_item       FOREIGN KEY (item_id)       REFERENCES menu_items(id)  ON DELETE CASCADE,
+    CONSTRAINT fk_ivc_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_ivc_restaurant ON item_view_counts (restaurant_id, view_count DESC);
+
 -- ── Sample seed data (remove before production) ──────────────
 -- Password hash below = BCrypt of "admin123" with 12 rounds
 INSERT INTO restaurants (name, slug, email, password_hash, phone, plan_type)

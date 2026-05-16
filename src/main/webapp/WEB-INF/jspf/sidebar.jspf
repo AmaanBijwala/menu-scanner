@@ -26,6 +26,14 @@
             <span class="sidebar-nav-icon">&#9633;</span>
             <span class="sidebar-nav-label">QR Generator</span>
         </a>
+        <a href="${pageContext.request.contextPath}/gallery" id="nav-gallery">
+            <span class="sidebar-nav-icon">&#128247;</span>
+            <span class="sidebar-nav-label">Gallery</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/analytics" id="nav-analytics">
+            <span class="sidebar-nav-icon">&#128200;</span>
+            <span class="sidebar-nav-label">Analytics</span>
+        </a>
         <a href="${pageContext.request.contextPath}/campaigns" id="nav-campaigns">
             <span class="sidebar-nav-icon">&#128227;</span>
             <span class="sidebar-nav-label">Campaigns</span>
