@@ -22,16 +22,23 @@ public final class PlanConfig {
     public static final int  BASIC_MAX_MENU_ITEMS      = 50;
     public static final int  PRO_MAX_MENU_ITEMS         = Integer.MAX_VALUE;
 
+    public static final int  BASIC_MAX_GALLERY_IMAGES  = 8;
+    public static final int  PRO_MAX_GALLERY_IMAGES    = Integer.MAX_VALUE;
+
     public static final boolean BASIC_CAMPAIGNS_ENABLED  = false;
     public static final boolean PRO_CAMPAIGNS_ENABLED     = true;
 
-    public static final boolean BASIC_ANALYTICS_ENABLED  = false;
+    public static final boolean BASIC_ANALYTICS_ENABLED  = true;
     public static final boolean PRO_ANALYTICS_ENABLED     = true;
 
     // ── Helper methods ────────────────────────────────────────────────────
 
     public static int getMaxMenuItems(String planType) {
         return PLAN_PRO.equalsIgnoreCase(planType) ? PRO_MAX_MENU_ITEMS : BASIC_MAX_MENU_ITEMS;
+    }
+
+    public static int getMaxGalleryImages(String planType) {
+        return PLAN_PRO.equalsIgnoreCase(planType) ? PRO_MAX_GALLERY_IMAGES : BASIC_MAX_GALLERY_IMAGES;
     }
 
     /**

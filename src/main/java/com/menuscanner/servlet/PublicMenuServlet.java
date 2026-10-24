@@ -1,8 +1,11 @@
 package com.menuscanner.servlet;
 
 import com.google.gson.Gson;
+import com.menuscanner.dao.AnalyticsDAO;
+import com.menuscanner.dao.GalleryDAO;
 import com.menuscanner.dao.MenuItemDAO;
 import com.menuscanner.dao.RestaurantDAO;
+import com.menuscanner.model.GalleryImage;
 import com.menuscanner.model.MenuItem;
 import com.menuscanner.model.Restaurant;
 import com.menuscanner.util.RedisCache;
@@ -32,6 +35,8 @@ public class PublicMenuServlet extends HttpServlet {
 
     private final RestaurantDAO restaurantDAO = new RestaurantDAO();
     private final MenuItemDAO   menuItemDAO   = new MenuItemDAO();
+    private final AnalyticsDAO  analyticsDAO  = new AnalyticsDAO();
+    private final GalleryDAO    galleryDAO    = new GalleryDAO();
     private final Gson          gson          = new Gson();
 
     @Override
@@ -59,6 +64,20 @@ public class PublicMenuServlet extends HttpServlet {
                 items = menuItemDAO.findByRestaurantId(restaurant.getId());
                 RedisCache.setMenu(restaurant.getId(), gson.toJson(items));
             }
+
+            // Record QR scan asynchronously (non-blocking)
+            final long rid = restaurant.getId();
+            final String ua = req.getHeader("User-Agent");
+            final String ip = req.getHeader("X-Forwarded-For") != null
+                    ? req.getHeader("X-Forwarded-For").split(",")[0].trim()
+                    : req.getRemoteAddr();
+            new Thread(() -> analyticsDAO.recordScan(rid, ua, ip)).start();
+
+            // Gallery images (best-effort — don't fail the whole page if table missing)
+            try {
+                List<GalleryImage> gallery = galleryDAO.findByRestaurantId(restaurant.getId());
+                req.setAttribute("galleryImages", gallery);
+            } catch (Exception ignored) {}
 
             req.setAttribute("restaurant", restaurant);
             req.setAttribute("menuItems",  items);

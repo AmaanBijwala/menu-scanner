@@ -1,0 +1,12 @@
+{
+  "name": "menu-scanner-onboarding-agent",
+  "version": "1.0.0",
+  "description": "Scrapes a Zomato restaurant page and imports categories, items, and images into Menu Scanner",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

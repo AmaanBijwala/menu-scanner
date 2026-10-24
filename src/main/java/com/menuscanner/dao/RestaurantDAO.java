@@ -3,6 +3,8 @@ package com.menuscanner.dao;
 import com.menuscanner.model.Restaurant;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RestaurantDAO {
 
@@ -84,6 +86,69 @@ public class RestaurantDAO {
             ps.setString(6, r.getSocialYoutube());
             ps.setString(7, r.getSocialTwitter());
             ps.setLong(8, r.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Restaurant> findAll() throws SQLException {
+        String sql =
+            "SELECT r.*, COALESCE(m.cnt, 0) AS dish_count " +
+            "FROM restaurants r " +
+            "LEFT JOIN (SELECT restaurant_id, COUNT(*) AS cnt FROM menu_items GROUP BY restaurant_id) m " +
+            "ON r.id = m.restaurant_id " +
+            "ORDER BY r.created_at DESC";
+        List<Restaurant> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Restaurant r = mapRow(rs);
+                r.setDishCount(rs.getInt("dish_count"));
+                list.add(r);
+            }
+        }
+        return list;
+    }
+
+    public boolean slugExists(String slug) throws SQLException {
+        String sql = "SELECT 1 FROM restaurants WHERE slug = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, slug);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public void updatePlan(long id, String planType) throws SQLException {
+        String sql = "UPDATE restaurants SET plan_type=? WHERE id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, planType);
+            ps.setLong(2, id);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateActive(long id, boolean active) throws SQLException {
+        String sql = "UPDATE restaurants SET is_active=? WHERE id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, active ? 1 : 0);
+            ps.setLong(2, id);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateContact(long id, String name, String email, String phone) throws SQLException {
+        String sql = "UPDATE restaurants SET name=?, email=?, phone=? WHERE id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, email.toLowerCase());
+            ps.setString(3, phone == null || phone.isBlank() ? null : phone.trim());
+            ps.setLong(4, id);
             ps.executeUpdate();
         }
     }

@@ -20,7 +20,8 @@ public class AuthFilter implements Filter {
     private static final Set<String> PUBLIC_EXACT = Set.of(
             "/login",
             "/menu",
-            "/lead-capture"
+            "/lead-capture",
+            "/track-items"
     );
 
     /** Path prefixes that never require login. */
@@ -28,7 +29,8 @@ public class AuthFilter implements Filter {
             "/public/",
             "/images/",   // served by ImageServlet from external directory
             "/css/",
-            "/js/"
+            "/js/",
+            "/admin/"     // admin routes are guarded by AdminAuthFilter
     );
 
     @Override
@@ -39,6 +41,8 @@ public class AuthFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         String path = req.getServletPath();
+        String pi   = req.getPathInfo();
+        if (pi != null) path = path + pi;   // wildcard servlets (e.g. /images/*) need pathInfo appended
 
         if (isPublic(path)) {
             chain.doFilter(request, response);
