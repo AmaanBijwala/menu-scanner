@@ -67,10 +67,14 @@
         <span class="bn-icon">&#128101;</span>
         <span class="bn-label">Leads</span>
     </a>
+    <a href="${pageContext.request.contextPath}/analytics" class="bn-item" id="bn-analytics">
+        <span class="bn-icon">&#128200;</span>
+        <span class="bn-label">Analytics</span>
+    </a>
     <div class="bn-item bn-logout-wrap">
         <button type="button" class="bn-logout-btn" id="profileTriggerBnav" onclick="toggleProfileCard(event)">
             <span class="bn-icon">&#128100;</span>
-            <span class="bn-label">Profile</span>
+            <span class="bn-label">More</span>
         </button>
     </div>
 </nav>
@@ -93,7 +97,10 @@
         <span class="plan-badge plan-<c:out value="${sessionScope.planType}"/>"><c:out value="${sessionScope.planType}"/> Plan</span>
     </div>
     <div class="profile-card-divider"></div>
-    <a href="${pageContext.request.contextPath}/profile" class="profile-card-settings">&#9881;&nbsp; Profile Settings</a>
+    <a href="${pageContext.request.contextPath}/profile"   class="profile-card-settings">&#9881;&nbsp; Profile Settings</a>
+    <a href="${pageContext.request.contextPath}/analytics" class="profile-card-settings">&#128200;&nbsp; Analytics</a>
+    <a href="${pageContext.request.contextPath}/gallery"   class="profile-card-settings">&#128247;&nbsp; Gallery</a>
+    <a href="${pageContext.request.contextPath}/campaigns" class="profile-card-settings">&#128227;&nbsp; Campaigns</a>
     <div class="profile-card-divider"></div>
     <form method="post" action="${pageContext.request.contextPath}/logout" class="profile-card-logout">
         <button type="submit">&#8617;&nbsp; Logout</button>
@@ -131,11 +138,15 @@ function toggleSidebar() {
 
 document.addEventListener('DOMContentLoaded', function () {
     var path = window.location.pathname;
-    var bnDash  = document.getElementById('bn-dashboard');
-    var bnMenu  = document.getElementById('bn-menu');
-    var bnLeads = document.getElementById('bn-leads');
-    if (path.indexOf('/dashboard') !== -1 && bnDash)  bnDash.classList.add('active');
-    if (path.indexOf('/menu-items') !== -1 && bnMenu)  bnMenu.classList.add('active');
-    if (path.indexOf('/customers')  !== -1 && bnLeads) bnLeads.classList.add('active');
+    var map = {
+        'bn-dashboard': '/dashboard',
+        'bn-menu':      '/menu-items',
+        'bn-leads':     '/customers',
+        'bn-analytics': '/analytics'
+    };
+    Object.keys(map).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && path.indexOf(map[id]) !== -1) el.classList.add('active');
+    });
 });
 </script>

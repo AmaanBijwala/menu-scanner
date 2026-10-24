@@ -113,6 +113,19 @@ CREATE TABLE item_view_counts (
 
 CREATE INDEX idx_ivc_restaurant ON item_view_counts (restaurant_id, view_count DESC);
 
+-- ── 8. gallery_images ───────────────────────────────────────────────
+CREATE TABLE gallery_images (
+    id            BIGSERIAL      PRIMARY KEY,
+    restaurant_id BIGINT         NOT NULL,
+    image_path    VARCHAR(255)   NOT NULL,
+    caption       VARCHAR(255),
+    display_order INTEGER        DEFAULT 0 NOT NULL,
+    created_at    TIMESTAMP      DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT fk_gallery_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_gallery_restaurant ON gallery_images (restaurant_id, display_order);
+
 -- ── Sample seed data (remove before production) ──────────────
 -- Password hash below = BCrypt of "admin123" with 12 rounds
 INSERT INTO restaurants (name, slug, email, password_hash, phone, plan_type)
