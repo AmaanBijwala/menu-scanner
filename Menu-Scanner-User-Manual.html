@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Scanner — User Manual</title>
+<style>
+  :root {
+    --primary: #FF6B35;
+    --primary-dark: #e55a25;
+    --primary-light: #fff3ef;
+    --secondary: #2D3748;
+    --accent: #38B2AC;
+    --pro: #7C3AED;
+    --pro-light: #f3eeff;
+    --basic: #2D9CDB;
+    --basic-light: #eaf6ff;
+    --success: #38A169;
+    --bg: #F7F8FC;
+    --white: #ffffff;
+    --text: #1A202C;
+    --text-muted: #718096;
+    --border: #E2E8F0;
+    --sidebar-w: 260px;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--secondary);
+    min-height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sidebar-logo .brand {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  .sidebar-logo .brand span { color: var(--primary); }
+
+  .sidebar-logo .tagline {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .sidebar-section {
+    padding: 20px 16px 6px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 700;
+  }
+
+  .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    border-radius: 8px;
+    margin: 2px 8px;
+  }
+
+  .sidebar nav a:hover,
+  .sidebar nav a.active {
+    background: rgba(255,107,53,0.18);
+    color: #fff;
+  }
+
+  .sidebar nav a.active { color: var(--primary); font-weight: 600; }
+
+  .sidebar nav a .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 20px 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.3);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 40%, #2D3748 100%);
+    padding: 60px 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+  }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.8);
+    max-width: 520px;
+    margin-bottom: 32px;
+  }
+
+  .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .hero-pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 48px 60px; }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 72px;
+    scroll-margin-top: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .section-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    background: var(--primary-light);
+    flex-shrink: 0;
+  }
+
+  .section-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--secondary);
+  }
+
+  .section-header .section-num {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+  }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+  .card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--secondary); }
+  .card p { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .step-body h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; color: var(--secondary); }
+  .step-body p { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.875rem;
+  }
+
+  .info-box.tip { background: #e6f7f5; border-left: 4px solid var(--accent); color: #1a5c58; }
+  .info-box.note { background: #fff8e1; border-left: 4px solid #F6AD55; color: #744210; }
+  .info-box.pro { background: var(--pro-light); border-left: 4px solid var(--pro); color: #4c1d95; }
+  .info-box.warn { background: #fff5f5; border-left: 4px solid #FC8181; color: #742a2a; }
+
+  .info-box .info-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .info-box p { margin: 0; line-height: 1.6; }
+  .info-box strong { font-weight: 700; }
+
+  /* ── PLAN TABLE ── */
+  .plan-table-wrap {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin: 24px 0;
+  }
+
+  .plan-table { width: 100%; border-collapse: collapse; }
+
+  .plan-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    background: #f8f9fc;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .plan-table th:nth-child(2) { color: var(--basic); }
+  .plan-table th:nth-child(3) { color: var(--pro); }
+
+  .plan-table td {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+    vertical-align: middle;
+  }
+
+  .plan-table tr:last-child td { border-bottom: none; }
+  .plan-table tr:hover td { background: var(--bg); }
+
+  .plan-table td:first-child { font-weight: 500; color: var(--secondary); }
+
+  .badge-basic {
+    background: var(--basic-light);
+    color: var(--basic);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .badge-pro {
+    background: var(--pro-light);
+    color: var(--pro);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .check { color: var(--success); font-weight: 700; font-size: 1rem; }
+  .cross { color: #E53E3E; font-weight: 700; font-size: 1rem; }
+
+  /* ── FEATURE LIST ── */
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+
+  .feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.875rem;
+    color: var(--text);
+    background: var(--white);
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .feature-list li .fi { flex-shrink: 0; margin-top: 1px; }
+
+  /* ── SCREEN MOCKUP ── */
+  .mockup {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin: 20px 0;
+  }
+
+  .mockup-bar {
+    background: #f1f3f7;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot.red { background: #FF5F57; }
+  .mockup-dot.yellow { background: #FFBD2E; }
+  .mockup-dot.green { background: #28CA41; }
+
+  .mockup-url {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .mockup-body { padding: 28px; }
+
+  /* ── ACCORDION (FAQ) ── */
+  .accordion { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+
+  .acc-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .acc-header {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--secondary);
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .acc-header:hover { background: var(--bg); }
+  .acc-header.open { color: var(--primary); }
+
+  .acc-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.3s;
+    color: var(--text-muted);
+  }
+
+  .acc-header.open .acc-arrow { transform: rotate(180deg); }
+
+  .acc-body {
+    display: none;
+    padding: 0 20px 18px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+  }
+
+  .acc-body.open {
+    display: block;
+    animation: fadeSlide 0.25s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TWO-COL ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 16px 0; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight {
+    background: linear-gradient(135deg, var(--primary) 0%, #FF8C42 100%);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    color: #fff;
+    margin: 24px 0;
+  }
+
+  .highlight h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+  .highlight p { opacity: 0.88; font-size: 0.875rem; line-height: 1.6; }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 6px;
+  }
+
+  .tag.pro { background: var(--pro-light); color: var(--pro); }
+  .tag.basic { background: var(--basic-light); color: var(--basic); }
+  .tag.new { background: #e6fffa; color: #276749; }
+  .tag.soon { background: #fff8e1; color: #b7791f; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 2px dashed var(--border); margin: 48px 0; }
+
+  /* ── BACK TO TOP ── */
+  #back-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 44px; height: 44px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: transform 0.2s;
+  }
+
+  #back-top:hover { transform: scale(1.1); }
+  #back-top.visible { display: flex; }
+
+  /* ── PRINT ── */
+  @media print {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    #back-top { display: none !important; }
+    .hero { background: var(--primary) !important; -webkit-print-color-adjust: exact; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { width: 0; overflow: hidden; }
+    .main { margin-left: 0; }
+    .hero { padding: 40px 28px 60px; }
+    .content { padding: 32px 24px; }
+    .hero h1 { font-size: 2rem; }
+    .two-col { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Menu<span>Scanner</span></div>
+    <div class="tagline">User Manual v1.0</div>
+  </div>
+
+  <div class="sidebar-section">Getting Started</div>
+  <nav>
+    <a href="#overview" class="active"><span class="icon">📋</span> Overview</a>
+    <a href="#login"><span class="icon">🔐</span> Login & Logout</a>
+    <a href="#dashboard"><span class="icon">🏠</span> Dashboard</a>
+  </nav>
+
+  <div class="sidebar-section">Menu & Items</div>
+  <nav>
+    <a href="#menu-manager"><span class="icon">🍽️</span> Menu Manager</a>
+    <a href="#categories"><span class="icon">📂</span> Categories</a>
+    <a href="#bulk-upload"><span class="icon">📤</span> Bulk Upload</a>
+    <a href="#gallery"><span class="icon">📷</span> Gallery</a>
+  </nav>
+
+  <div class="sidebar-section">Growth Tools</div>
+  <nav>
+    <a href="#qr-code"><span class="icon">⬛</span> QR Code</a>
+    <a href="#public-menu"><span class="icon">🌐</span> Public Menu</a>
+    <a href="#leads"><span class="icon">👥</span> Leads & Customers</a>
+    <a href="#campaigns"><span class="icon">📣</span> Campaigns</a>
+  </nav>
+
+  <div class="sidebar-section">Account</div>
+  <nav>
+    <a href="#profile"><span class="icon">⚙️</span> Profile Settings</a>
+    <a href="#plans"><span class="icon">💎</span> Plans</a>
+    <a href="#faq"><span class="icon">❓</span> FAQ</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    Menu Scanner &copy; 2025<br>
+    Confidential — Client Copy
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">📖 Complete User Guide</div>
+    <h1>Menu Scanner<br>User Manual</h1>
+    <p>Everything you need to manage your digital menu, capture customers, and grow your restaurant — all in one place.</p>
+    <div class="hero-pills">
+      <span class="hero-pill">🍽️ Digital Menu</span>
+      <span class="hero-pill">📲 QR Code Ordering</span>
+      <span class="hero-pill">👥 Lead Capture</span>
+      <span class="hero-pill">📷 Photo Gallery</span>
+      <span class="hero-pill">📣 Campaigns</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <div class="section-icon">📋</div>
+        <div>
+          <span class="section-num">Section 01</span>
+          <h2>What is Menu Scanner?</h2>
+        </div>
+      </div>
+
+      <p style="font-size:1rem; color:var(--text-muted); margin-bottom:24px; max-width:680px;">
+        Menu Scanner is a complete digital menu platform for restaurants. Share your menu via QR code, capture customer leads automatically, upload photos, and manage everything from one simple dashboard — no tech skills required.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <h3>Digital Menu via QR</h3>
+          <p>Customers scan your QR code and instantly see your full menu — no app download needed.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <h3>Lead Capture</h3>
+          <p>Collect customer names, phone numbers, and WhatsApp consent automatically when they view your menu.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🖼️</div>
+          <h3>Photo Gallery</h3>
+          <p>Showcase your restaurant ambience and food photos to attract more customers.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📣</div>
+          <h3>Marketing Campaigns</h3>
+          <p>Send WhatsApp and SMS promotions directly to your captured customers (PRO plan).</p>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <h3>🚀 Quick Start Checklist</h3>
+        <p>1. Log in → 2. Add your menu categories → 3. Add menu items with photos → 4. Download your QR code → 5. Place QR on your tables → 6. Watch customers roll in!</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ LOGIN ══ -->
+    <section class="section" id="login">
+      <div class="section-header">
+        <div class="section-icon">🔐</div>
+        <div>
+          <span class="section-num">Section 02</span>
+          <h2>Login & Logout</h2>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <h3 style="margin-bottom:14px; font-size:1.05rem;">How to Log In</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <h4>Open the website</h4>
+                <p>Go to your Menu Scanner URL in any browser on phone or computer.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h4>Enter your email</h4>
+                <p>Type the email address registered with your account.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h4>Enter your password</h4>
+                <p>Type your password (minimum 8 characters).</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h4>Click "Login"</h4>
+                <p>You will be taken to your dashboard automatically.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mockup-dot red"></div>
+              <div class="mockup-dot yellow"></div>
+              <div class="mockup-dot green"></div>
+              <div class="mockup-url">menuscanner.duckdns.org/menu-scanner/login</div>
+            </div>
+            <div class="mockup-body" style="text-align:center;">
+              <div style="font-size:2rem; margin-bottom:12px;">🍽️</div>
+              <div style="font-weight:800; font-size:1.1rem; margin-bottom:4px;">Menu Scanner</div>
+              <div style="color:var(--text-muted); font-size:0.8rem; margin-bottom:24px;">Sign in to your restaurant account</div>
+              <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:10px; text-align:left; font-size:0.85rem; color:var(--text-muted);">📧 Email address</div>
+              <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:16px; text-align:left; font-size:0.85rem; color:var(--text-muted);">🔒 Password</div>
+              <div style="background:var(--primary); color:#fff; border-radius:8px; padding:11px; font-weight:700; font-size:0.9rem;">Login →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box note">
+        <span class="info-icon">⏱️</span>
+        <p><strong>Auto Logout:</strong> For your security, you are automatically logged out after <strong>30 minutes</strong> of inactivity. Simply log in again to continue.</p>
+      </div>
+
+      <h3 style="margin: 24px 0 12px; font-size:1.05rem;">How to Log Out</h3>
+      <ul class="feature-list">
+        <li><span class="fi">👤</span> Click your <strong>profile avatar</strong> (top-right on desktop, bottom-right on mobile)</li>
+        <li><span class="fi">↩️</span> Click <strong>"Logout"</strong> from the dropdown card</li>
+        <li><span class="fi">✅</span> You will be redirected to the login page safely</li>
+      </ul>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ DASHBOARD ══ -->
+    <section class="section" id="dashboard">
+      <div class="section-header">
+        <div class="section-icon">🏠</div>
+        <div>
+          <span class="section-num">Section 03</span>
+          <h2>Dashboard</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">The Dashboard is the first screen you see after logging in. It gives you a quick overview of your restaurant.</p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🍽️</div>
+          <h3>Menu Items Count</h3>
+          <p>Shows total number of items on your menu right now.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <h3>Customers Captured</h3>
+          <p>Total leads collected through the "Get Offers" button on your public menu.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔗</div>
+          <h3>Public Menu Link</h3>
+          <p>Your shareable menu URL. Click the copy button to share it instantly on WhatsApp.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⬛</div>
+          <h3>QR Code</h3>
+          <p>Download your QR code as a PNG image and print it on table standees or receipts.</p>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-icon">💡</span>
+        <p><strong>Tip:</strong> Download your QR code from the Dashboard and print it in A5 or A4 size to place on your dining tables. Customers can scan it instantly with any smartphone camera.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ MENU MANAGER ══ -->
+    <section class="section" id="menu-manager">
+      <div class="section-header">
+        <div class="section-icon">🍽️</div>
+        <div>
+          <span class="section-num">Section 04</span>
+          <h2>Menu Manager</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">The Menu Manager is where you add, edit, and delete all your food and drink items. Go to <strong>Menu Manager</strong> from the sidebar.</p>
+
+      <h3 style="margin-bottom:14px; font-size:1.05rem;">➕ Adding a New Item</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Click "Add Item"</h4>
+            <p>The add item form will appear on screen.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Fill in the details</h4>
+            <p>Enter the item name, category, price, discount (if any), and description. Mark it as Veg or Non-Veg.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Upload a photo</h4>
+            <p>Select a photo from your phone/computer. Accepted: JPG, PNG. Max size: 5MB. The image will be automatically cropped to a square.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Set availability</h4>
+            <p>Toggle availability ON to show the item, or OFF to hide it temporarily without deleting.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Save</h4>
+            <p>Click Save. The item appears on your public menu immediately.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:28px;">
+        <div>
+          <h3 style="margin-bottom:12px; font-size:1rem;">✏️ Editing an Item</h3>
+          <ul class="feature-list">
+            <li><span class="fi">🖊️</span> Click the <strong>pencil (✎) icon</strong> next to the item</li>
+            <li><span class="fi">📝</span> Update any field — name, price, photo, availability</li>
+            <li><span class="fi">💾</span> Click <strong>Save</strong> to apply changes instantly</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin-bottom:12px; font-size:1rem;">🗑️ Deleting an Item</h3>
+          <ul class="feature-list">
+            <li><span class="fi">❌</span> Click the <strong>red ✕ button</strong> next to any item</li>
+            <li><span class="fi">⚠️</span> A confirmation popup will appear — click OK to delete</li>
+            <li><span class="fi">🔄</span> The item is removed from your public menu immediately</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box note">
+        <span class="info-icon">📌</span>
+        <p><strong>BASIC Plan:</strong> You can add up to <strong>50 menu items</strong>. To add more, upgrade to the PRO plan. PRO plan has no limit.</p>
+      </div>
+
+      <h3 style="margin: 24px 0 12px; font-size:1rem;">📋 Item Fields Explained</h3>
+      <div class="plan-table-wrap">
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>What it is</th>
+              <th>Required?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Dish Name</td><td>Name shown on the menu</td><td><span class="check">✔ Yes</span></td></tr>
+            <tr><td>Category</td><td>Group the item belongs to (e.g., Starters, Biryani)</td><td><span class="check">✔ Yes</span></td></tr>
+            <tr><td>Price (₹)</td><td>Full price of the item</td><td><span class="check">✔ Yes</span></td></tr>
+            <tr><td>Discount (₹)</td><td>Amount to be deducted from price (shown as strikethrough)</td><td><span class="cross">✗ Optional</span></td></tr>
+            <tr><td>Description</td><td>Short description shown below the item name</td><td><span class="cross">✗ Optional</span></td></tr>
+            <tr><td>Veg / Non-Veg</td><td>Displays the green or red dot indicator</td><td><span class="check">✔ Yes</span></td></tr>
+            <tr><td>Availability</td><td>Toggle to show or hide item without deleting</td><td><span class="check">✔ Yes</span></td></tr>
+            <tr><td>Display Order</td><td>Controls the order items appear in each category</td><td><span class="cross">✗ Optional</span></td></tr>
+            <tr><td>Photo</td><td>Food image shown on the menu (JPG/PNG, max 5MB)</td><td><span class="cross">✗ Optional</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ CATEGORIES ══ -->
+    <section class="section" id="categories">
+      <div class="section-header">
+        <div class="section-icon">📂</div>
+        <div>
+          <span class="section-num">Section 05</span>
+          <h2>Categories</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Categories group your menu items (e.g., Starters, Main Course, Biryani, Beverages). You must create categories before adding items.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Go to Menu Manager</h4>
+            <p>The category section is on the right side of the Menu Manager page.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Type a category name</h4>
+            <p>E.g., "Starters", "Biryani", "Chinese", "Beverages", "Desserts"</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Click "Add Category"</h4>
+            <p>The category is saved and appears in the category list and in the item-add form.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>To delete a category</h4>
+            <p>Click the × button next to any category. Note: items in that category will lose their category assignment.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-icon">💡</span>
+        <p><strong>Best Practice:</strong> Create all your categories first, then start adding menu items. This saves time as you can assign categories while adding items.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ BULK UPLOAD ══ -->
+    <section class="section" id="bulk-upload">
+      <div class="section-header">
+        <div class="section-icon">📤</div>
+        <div>
+          <span class="section-num">Section 06</span>
+          <h2>Bulk Upload</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Bulk Upload lets you add many menu items at once using an Excel or CSV file — perfect when setting up for the first time or importing a full menu.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Download the template</h4>
+            <p>In Menu Manager, click <strong>"Download Template"</strong>. Open the Excel file on your computer.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Fill in your items</h4>
+            <p>Each row = one menu item. Fill in Dish Name, Category, Price, Discount, Display Order, Description, Veg (Y/N), Available (Y/N).</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Save the file</h4>
+            <p>Save as .xlsx (Excel) or .csv format.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Upload the file</h4>
+            <p>Click <strong>"Bulk Upload"</strong> in Menu Manager, select your file, and click Upload.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Check results</h4>
+            <p>You'll see how many items were added successfully, and any rows with errors will be listed with the reason.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="info-icon">⚠️</span>
+        <p><strong>Important:</strong> The <strong>Category</strong> column must exactly match a category you have already created. Make sure to create all categories before uploading. Spelling must match exactly.</p>
+      </div>
+
+      <h3 style="margin: 24px 0 12px; font-size:1rem;">Template Column Guide</h3>
+      <div class="plan-table-wrap">
+        <table class="plan-table">
+          <thead><tr><th>Column</th><th>Example</th><th>Rules</th></tr></thead>
+          <tbody>
+            <tr><td>Dish Identity</td><td>Butter Chicken</td><td>Required. The dish name.</td></tr>
+            <tr><td>Category</td><td>Main Course</td><td>Required. Must match an existing category exactly.</td></tr>
+            <tr><td>Actual Price</td><td>250</td><td>Required. Numbers only.</td></tr>
+            <tr><td>Discount (optional)</td><td>30</td><td>Optional. Must be less than price.</td></tr>
+            <tr><td>Display Order</td><td>1</td><td>Optional. Controls order of items in category.</td></tr>
+            <tr><td>Description</td><td>Creamy tomato gravy</td><td>Optional. Short description.</td></tr>
+            <tr><td>Veg (Y/N)</td><td>Y</td><td>Y = Vegetarian, N = Non-Vegetarian.</td></tr>
+            <tr><td>Available (Y/N)</td><td>Y</td><td>Y = Show on menu, N = Hide from menu.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ GALLERY ══ -->
+    <section class="section" id="gallery">
+      <div class="section-header">
+        <div class="section-icon">📷</div>
+        <div>
+          <span class="section-num">Section 07</span>
+          <h2>Gallery</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Upload photos of your restaurant's ambience, interiors, special dishes, or events. These appear on your public menu page to attract customers.</p>
+
+      <div class="two-col">
+        <div>
+          <h3 style="margin-bottom:14px; font-size:1rem;">📤 Uploading Photos</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <h4>Go to Gallery</h4>
+                <p>Click "Gallery" in the sidebar menu.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h4>Click the upload area</h4>
+                <p>Drag and drop a photo or click to browse files. JPG or PNG, max 5MB.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h4>Add a caption (optional)</h4>
+                <p>A short label like "Our dining area" or "Weekend Special".</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h4>Click Upload</h4>
+                <p>Photo appears in gallery and on your public menu page.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:14px; font-size:1rem;">🗑️ Deleting Photos</h3>
+          <ul class="feature-list">
+            <li><span class="fi">❌</span> Hover over a photo in the gallery</li>
+            <li><span class="fi">🗑️</span> Click the <strong>delete button</strong> that appears</li>
+            <li><span class="fi">✅</span> Photo is removed from gallery and public menu</li>
+          </ul>
+
+          <div class="info-box pro" style="margin-top:16px;">
+            <span class="info-icon">💎</span>
+            <p><strong>Plan Limits:</strong><br>
+            BASIC: Up to <strong>8 photos</strong><br>
+            PRO: <strong>Unlimited photos</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ QR CODE ══ -->
+    <section class="section" id="qr-code">
+      <div class="section-header">
+        <div class="section-icon">⬛</div>
+        <div>
+          <span class="section-num">Section 08</span>
+          <h2>QR Code Generator</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Your QR code links directly to your public menu. When a customer scans it, they see your full menu instantly without any app download.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Go to Dashboard</h4>
+            <p>Your QR code is displayed on the Dashboard page.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Click "Download QR"</h4>
+            <p>A 300×300 pixel PNG file will be downloaded to your device.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Print and display</h4>
+            <p>Print it on table cards, menu standees, reception desks, windows, or receipts.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-icon">💡</span>
+        <p><strong>Print Tip:</strong> For table standees, print the QR at 6×6 cm minimum for easy scanning. Add a short text like <em>"Scan to view our menu"</em> below the QR code.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ PUBLIC MENU ══ -->
+    <section class="section" id="public-menu">
+      <div class="section-header">
+        <div class="section-icon">🌐</div>
+        <div>
+          <span class="section-num">Section 09</span>
+          <h2>Public Menu (Customer View)</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">This is what your customers see when they scan the QR code or visit your menu link. No login required — it works on any phone or browser.</p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🏷️</div>
+          <h3>Restaurant Name & Socials</h3>
+          <p>Your restaurant name appears as the header. WhatsApp, Instagram, Facebook, and YouTube icons link directly to your profiles.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎁</div>
+          <h3>"Get Offers" Button</h3>
+          <p>A prominent button opens a form where customers enter their name, phone, and WhatsApp consent to receive offers from you.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Menu by Category</h3>
+          <p>Items are grouped by category. Each item shows name, photo, veg/non-veg badge, price, discount, and description.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📸</div>
+          <h3>Gallery Photos</h3>
+          <p>Your uploaded restaurant photos appear in a gallery section on the public menu page.</p>
+        </div>
+      </div>
+
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot red"></div>
+          <div class="mockup-dot yellow"></div>
+          <div class="mockup-dot green"></div>
+          <div class="mockup-url">menuscanner.duckdns.org/menu-scanner/menu?slug=your-restaurant</div>
+        </div>
+        <div class="mockup-body">
+          <div style="text-align:center; padding:8px 0 20px;">
+            <div style="font-weight:800; font-size:1.2rem; margin-bottom:6px;">🍽️ Your Restaurant Name</div>
+            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:14px;">
+              <span style="background:#25D366; color:#fff; padding:4px 12px; border-radius:99px; font-size:0.75rem;">WhatsApp</span>
+              <span style="background:#E1306C; color:#fff; padding:4px 12px; border-radius:99px; font-size:0.75rem;">Instagram</span>
+            </div>
+            <div style="background:var(--primary); color:#fff; padding:10px 24px; border-radius:99px; display:inline-block; font-weight:700; font-size:0.9rem; margin-bottom:20px;">🎁 Get Offers</div>
+          </div>
+          <div style="background:var(--bg); border-radius:10px; padding:14px; margin-bottom:10px;">
+            <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-bottom:10px;">🥗 Starters</div>
+            <div style="display:flex; gap:12px; align-items:center; background:#fff; border-radius:8px; padding:10px; margin-bottom:6px;">
+              <div style="width:48px; height:48px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
+              <div>
+                <div style="font-weight:600; font-size:0.85rem;">Chicken Tikka</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Juicy grilled chicken</div>
+                <div style="font-weight:700; font-size:0.9rem; color:var(--primary);">₹280</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-icon">🔗</span>
+        <p><strong>Share your menu link directly:</strong> Copy the public menu URL from your Dashboard and paste it in your WhatsApp Business bio, Google Business profile, Instagram bio, and Zomato/Swiggy listings.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ LEADS ══ -->
+    <section class="section" id="leads">
+      <div class="section-header">
+        <div class="section-icon">👥</div>
+        <div>
+          <span class="section-num">Section 10</span>
+          <h2>Leads & Customers</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Every time a customer fills in the "Get Offers" form on your public menu, their details are saved as a lead. This is your growing customer database.</p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>View All Leads</h3>
+          <p>Go to <strong>Leads</strong> in the sidebar to see your full customer list with name, phone, age, gender, and date captured.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h3>Search Customers</h3>
+          <p>Use the search bar to find a specific customer by name or phone number quickly.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📥</div>
+          <h3>Export to CSV</h3>
+          <p>Click <strong>"Export CSV"</strong> to download your entire customer list as a spreadsheet file.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <h3>WhatsApp Consent</h3>
+          <p>See which customers gave consent to receive WhatsApp offers — important for compliant marketing.</p>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-icon">📱</span>
+        <p><strong>How leads are captured:</strong> Customers who scan your QR, click "Get Offers", and submit the form are automatically added to your Leads list. You don't need to do anything — it happens automatically.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ CAMPAIGNS ══ -->
+    <section class="section" id="campaigns">
+      <div class="section-header">
+        <div class="section-icon">📣</div>
+        <div>
+          <span class="section-num">Section 11</span>
+          <h2>Campaigns <span class="tag pro">PRO</span> <span class="tag soon">Coming Soon</span></h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Campaigns let you send WhatsApp and SMS promotions directly to your captured customer list. This feature is available for PRO plan customers and is currently being activated.</p>
+
+      <div class="highlight">
+        <h3>📣 What you'll be able to do with Campaigns:</h3>
+        <p>Send personalized WhatsApp or SMS messages to all your customers — or just those who gave consent. Promote offers, announce new dishes, share weekend specials, and more. Target all customers or only WhatsApp-consented ones.</p>
+      </div>
+
+      <div class="info-box pro">
+        <span class="info-icon">💎</span>
+        <p><strong>PRO Feature:</strong> Campaigns are available on the PRO plan only. Contact your account manager to activate this feature once WhatsApp/SMS integration is enabled for your account.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ PROFILE ══ -->
+    <section class="section" id="profile">
+      <div class="section-header">
+        <div class="section-icon">⚙️</div>
+        <div>
+          <span class="section-num">Section 12</span>
+          <h2>Profile Settings</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Update your restaurant's information, social media links, and password from Profile Settings.</p>
+
+      <div class="two-col">
+        <div>
+          <h3 style="margin-bottom:14px; font-size:1rem;">📋 Restaurant Info</h3>
+          <ul class="feature-list">
+            <li><span class="fi">🏪</span> Update your <strong>Restaurant Name</strong></li>
+            <li><span class="fi">📞</span> Update your <strong>Phone Number</strong></li>
+            <li><span class="fi">📧</span> Email address is fixed and cannot be changed</li>
+          </ul>
+
+          <h3 style="margin:20px 0 12px; font-size:1rem;">📱 Social Media Links</h3>
+          <ul class="feature-list">
+            <li><span class="fi">💬</span> WhatsApp number (customers can click to chat)</li>
+            <li><span class="fi">📸</span> Instagram profile link</li>
+            <li><span class="fi">👥</span> Facebook page link</li>
+            <li><span class="fi">▶️</span> YouTube channel link</li>
+          </ul>
+          <div class="info-box tip" style="margin-top:12px;">
+            <span class="info-icon">💡</span>
+            <p>Social links appear as clickable icons on your public menu. Add them to make it easy for customers to follow you.</p>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:14px; font-size:1rem;">🔒 Change Password</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <h4>Enter current password</h4>
+                <p>Type your existing password for verification.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h4>Enter new password</h4>
+                <p>Must be at least 8 characters long.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h4>Confirm new password</h4>
+                <p>Type the new password again to confirm.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h4>Click Save</h4>
+                <p>Your password is updated immediately.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ PLANS ══ -->
+    <section class="section" id="plans">
+      <div class="section-header">
+        <div class="section-icon">💎</div>
+        <div>
+          <span class="section-num">Section 13</span>
+          <h2>Plans — BASIC vs PRO</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted); margin-bottom:24px;">Menu Scanner comes in two plans. Your current plan is shown in the profile avatar dropdown at the top right.</p>
+
+      <div class="plan-table-wrap">
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>🔵 BASIC</th>
+              <th>💜 PRO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Menu Items</td>
+              <td>Up to <strong>50 items</strong></td>
+              <td><strong>Unlimited</strong></td>
+            </tr>
+            <tr>
+              <td>Gallery Photos</td>
+              <td>Up to <strong>8 photos</strong></td>
+              <td><strong>Unlimited</strong></td>
+            </tr>
+            <tr>
+              <td>Categories</td>
+              <td><span class="check">✔</span> Unlimited</td>
+              <td><span class="check">✔</span> Unlimited</td>
+            </tr>
+            <tr>
+              <td>QR Code Generator</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>Public Menu Page</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>Lead Capture (Get Offers)</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>Customer List & Export</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>Bulk Upload (Excel/CSV)</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>Social Media Links</td>
+              <td><span class="check">✔</span> Included</td>
+              <td><span class="check">✔</span> Included</td>
+            </tr>
+            <tr>
+              <td>WhatsApp Campaigns</td>
+              <td><span class="cross">✗ Not included</span></td>
+              <td><span class="check">✔</span> Coming Soon</td>
+            </tr>
+            <tr>
+              <td>SMS Campaigns</td>
+              <td><span class="cross">✗ Not included</span></td>
+              <td><span class="check">✔</span> Coming Soon</td>
+            </tr>
+            <tr>
+              <td>Analytics</td>
+              <td><span class="cross">✗ Not included</span></td>
+              <td><span class="check">✔</span> Coming Soon</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cards" style="margin-top:20px;">
+        <div class="card" style="border: 2px solid var(--basic); border-top: 4px solid var(--basic);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div style="background:var(--basic-light); color:var(--basic); padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:800;">BASIC PLAN</div>
+          </div>
+          <p style="font-size:0.875rem; color:var(--text-muted);">Perfect for getting started. Manage up to 50 menu items, share your QR code, and start capturing customer leads immediately.</p>
+        </div>
+        <div class="card" style="border: 2px solid var(--pro); border-top: 4px solid var(--pro);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div style="background:var(--pro-light); color:var(--pro); padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:800;">PRO PLAN</div>
+          </div>
+          <p style="font-size:0.875rem; color:var(--text-muted);">For growing restaurants. Unlimited menu items and photos, plus WhatsApp/SMS marketing campaigns to bring customers back again and again.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ══ FAQ ══ -->
+    <section class="section" id="faq">
+      <div class="section-header">
+        <div class="section-icon">❓</div>
+        <div>
+          <span class="section-num">Section 14</span>
+          <h2>Frequently Asked Questions</h2>
+        </div>
+      </div>
+
+      <div class="accordion">
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            Do customers need to download an app to view the menu?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            No. Customers simply scan your QR code with their phone's default camera app — no app download required. The menu opens directly in their browser.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            How quickly do menu changes appear to customers?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Changes appear within seconds. When you add, edit, or delete a menu item, the public menu is updated and the cache is refreshed automatically. Customers who refresh their browser will see the latest menu instantly.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            What image formats and sizes are supported for food photos?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            JPG and PNG images are supported. Maximum file size is 5MB per image. Images are automatically cropped to a square and resized to 800×800 pixels for optimal display.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            Can I hide an item temporarily without deleting it?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Yes. When editing an item, simply toggle <strong>Availability to OFF</strong>. The item remains in your database but is hidden from the public menu. Toggle it back ON anytime to show it again.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            How do I know when a new customer has filled the "Get Offers" form?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Go to the <strong>Leads</strong> section in the sidebar. Your customer list updates in real time whenever someone fills the form. You can also export the list as a CSV file to view in Excel.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            I forgot my password. How do I reset it?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Please contact your account manager or system administrator to reset your password. Once logged in, you can change it anytime from <strong>Profile Settings → Change Password</strong>.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            Can I use Menu Scanner on my mobile phone?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Yes! Menu Scanner is fully mobile-responsive. You can manage your menu, view leads, and update your profile from any smartphone browser. On mobile, navigation is available through the bottom navigation bar.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            What is the difference between WhatsApp and "Get Offers"?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            The <strong>WhatsApp icon</strong> (from your social links) opens a direct chat with your restaurant's WhatsApp number. The <strong>"Get Offers" button</strong> is a lead capture form — customers enter their details and you save them to your customer database for future marketing.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            How many categories can I create?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            There is no limit on categories — you can create as many as you need on both BASIC and PRO plans. Examples: Starters, Main Course, Biryani, Chinese, Beverages, Desserts, etc.
+          </div>
+        </div>
+
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            Is my customer data safe?
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="acc-body">
+            Yes. All customer data is stored securely on our server. Passwords are encrypted using industry-standard bcrypt hashing. Sessions expire after 30 minutes of inactivity for added security.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div style="background:var(--secondary); border-radius:var(--radius); padding:32px 36px; margin-top:48px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px;">🍽️ Menu<span style="color:var(--primary);">Scanner</span></div>
+        <div style="color:rgba(255,255,255,0.45); font-size:0.8rem;">Digital Menu Platform for Restaurants</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:rgba(255,255,255,0.5); font-size:0.8rem; margin-bottom:4px;">User Manual v1.0 · May 2025</div>
+        <div style="color:rgba(255,255,255,0.3); font-size:0.75rem;">Confidential — For Client Use Only</div>
+      </div>
+    </div>
+
+    <div style="height:48px;"></div>
+
+  </div><!-- /content -->
+</main><!-- /main -->
+
+<!-- BACK TO TOP -->
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+<script>
+// Accordion
+function toggleAcc(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.acc-header').forEach(h => h.classList.remove('open'));
+  document.querySelectorAll('.acc-body').forEach(b => b.classList.remove('open'));
+  // Open clicked if it was closed
+  if (!isOpen) {
+    header.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// Back to top
+window.addEventListener('scroll', function() {
+  const btn = document.getElementById('back-top');
+  if (window.scrollY > 400) btn.classList.add('visible');
+  else btn.classList.remove('visible');
+});
+
+// Active sidebar link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar nav a');
+
+function setActiveLink() {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.getBoundingClientRect().top;
+    if (top <= 80) current = section.id;
+  });
+  sidebarLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', setActiveLink);
+</script>
+
+</body>
+</html>
