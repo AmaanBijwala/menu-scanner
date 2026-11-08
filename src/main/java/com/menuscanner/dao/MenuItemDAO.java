@@ -9,7 +9,11 @@ import java.util.List;
 public class MenuItemDAO {
 
     public List<MenuItem> findByRestaurantId(long restaurantId) throws SQLException {
-        String sql = "SELECT * FROM menu_items WHERE restaurant_id = ? ORDER BY category ASC NULLS LAST, display_order ASC, name ASC";
+        // Sections follow the owner's category order (CategoryDAO); unarranged categories go A–Z after them
+        String sql = "SELECT * FROM menu_items m WHERE m.restaurant_id = ? ORDER BY m.category IS NULL, " +
+                     "(SELECT MIN(c.display_order) FROM categories c " +
+                     "  WHERE c.restaurant_id = m.restaurant_id AND c.name = m.category) ASC NULLS LAST, " +
+                     "m.category ASC, m.display_order ASC, m.name ASC";
         List<MenuItem> items = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

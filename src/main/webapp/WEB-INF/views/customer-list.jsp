@@ -49,7 +49,7 @@
             <c:choose>
                 <c:when test="${empty customers}">
                     <div class="card">
-                        <p class="empty-state">No customers yet. They appear here after submitting the "Get Offers" form on your public menu page.</p>
+                        <p class="empty-state">No customers yet. They appear here after submitting the "Join VIP Club" form on your public menu page.</p>
                     </div>
                 </c:when>
                 <c:otherwise>

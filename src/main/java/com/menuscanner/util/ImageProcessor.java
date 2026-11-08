@@ -22,12 +22,18 @@ public final class ImageProcessor {
      * Parent directories are created if they don't exist.
      */
     public static void saveResized(InputStream inputStream, File targetFile) throws IOException {
+        saveResized(inputStream, targetFile, MAX_WIDTH, MAX_HEIGHT, QUALITY);
+    }
+
+    /** Same as above with a caller-chosen box and JPEG quality. */
+    public static void saveResized(InputStream inputStream, File targetFile, int maxWidth, int maxHeight, float quality)
+            throws IOException {
         targetFile.getParentFile().mkdirs();
         Thumbnails.of(inputStream)
-                .size(MAX_WIDTH, MAX_HEIGHT)
+                .size(maxWidth, maxHeight)
                 .keepAspectRatio(true)
                 .outputFormat("jpg")
-                .outputQuality(QUALITY)
+                .outputQuality(quality)
                 .toFile(targetFile);
     }
 

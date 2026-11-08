@@ -2,6 +2,7 @@ package com.menuscanner.servlet;
 
 import com.menuscanner.dao.CategoryDAO;
 import com.menuscanner.model.Category;
+import com.menuscanner.util.RedisCache;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,6 +31,13 @@ public class CategoryServlet extends HttpServlet {
                     cat.setRestaurantId(restaurantId);
                     cat.setName(name.trim());
                     categoryDAO.save(cat);
+                }
+            } else if ("move".equals(action)) {
+                String idParam = req.getParameter("id");
+                int direction  = "up".equals(req.getParameter("dir")) ? -1 : 1;
+                if (idParam != null && !idParam.isBlank()) {
+                    categoryDAO.move(Long.parseLong(idParam), restaurantId, direction);
+                    RedisCache.invalidateMenu(restaurantId);   // cached menu JSON holds the old section order
                 }
             } else if ("delete".equals(action)) {
                 String idParam = req.getParameter("id");

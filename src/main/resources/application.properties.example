@@ -18,3 +18,9 @@ file.upload.images.path=/opt/menuscanner-data/images
 # ─── Application ────────────────────────────────────────────────────────────
 # Used when generating QR code URLs
 app.base.url=http://localhost:8080/menu-scanner
+
+# ─── Product 2: Google Review Scanner ───────────────────────────────────────
+# Shown on the page of a sticker that isn't assigned yet (sales pitch).
+# Phone with country code, digits only (e.g. 919876543210). Leave blank to hide.
+review.contact.name=
+review.contact.phone=

@@ -65,6 +65,45 @@ Run `src/main/resources/schema.sql` against the PostgreSQL instance to create al
 
 Error pages (404/403/500) route to `/public/error.jsp`.
 
+### Product 2 — Google Review Scanner (`com.menuscanner.review`)
+
+A separate product in the same WAR, kept in its own package (`review/model`, `review/dao`, `review/servlet`) and its own views folder (`WEB-INF/views/review/`). It does not depend on Product 1's restaurant accounts.
+
+- **Dynamic QR stickers:** each scanner has a sticker number (`#001`, which is the `id`) and a random 6-char `code`. The QR encodes `{app.base.url}/s/{code}`. Stickers are printed first, and an admin assigns a business and its Google review URL later.
+- **Links:** each scanner can have Google review, Instagram, Facebook, WhatsApp Channel and YouTube links (`ReviewPlatform` enum, which also validates and normalises pasted links).
+- **`/s/{code}`** (public, whitelisted in `AuthFilter`): handling depends on the scanner's state.
+  - Assigned and active with **one** link: records the scan and sends a **302** redirect straight to that link.
+  - Assigned and active with **two or more** links: shows `choose-app.jsp`. Each button goes through `/s/{code}/go/{platform}`, which records a click in `review_clicks` and then sends a 302 redirect.
+  - If the sticker's **join form** is on (`join_form`, the default for new assignments), the choose page is always shown, even for one link. Its "Join our VIP Club" box sits at the top, and its form (name, age, gender, mobile) POSTs to `/s/{code}/join`. That stores one row per phone per sticker in `review_contacts` for later WhatsApp offers. The owner sees the list in the dashboard's "VIP Club" tab and can download it as CSV.
+    - In that tab the owner can **add a VIP by hand** (`action=addContact`; an existing phone is left untouched) and **send offers**: tick rows (or Select all) → Next → write the message (`{name}` = first name) → Confirm → a queue of `wa.me/91…?text=` links sent one tap at a time from the owner's own WhatsApp. It costs nothing and uses no API. Confirm saves the offer (`action=startBroadcast`, JSON) in `review_broadcasts` + `review_broadcast_recipients`, and each Send tap sets `sent_at` (`action=markSent`). The last 20 offers show under "Offers sent", where Open resumes an unfinished one.
+    - **Photo on an offer:** `wa.me` links carry text only, so "📎 Add photo" uploads to `/review/offer-image` (`{images dir}/offers/{scannerId}/{uuid}.jpg`, max 1080px). The offer then gets a public `code`, and each message ends with a link to `/o/{code}` (public, whitelisted in `AuthFilter`). That page's `og:image` makes WhatsApp show the photo as a preview card; `{name}` reads "there" on it.
+  - The scan page and the unassigned/paused page end with "The Socio Advert by Bijwala Solutions".
+  - Never use 301, because browsers cache it and the target URL can change.
+  - Unassigned: shows a sales page. Paused: shows a neutral page.
+  - `?preview=1`: nothing is counted.
+- **Owner dashboard:** the login page is `/review/login` (phone and password, `review_owners`). The login is created from the admin assign form, where the same phone means the same login. `/review/*` is guarded by `ReviewOwnerAuthFilter`.
+  - `/review/dashboard` has two tabs: analytics (built with CSS bars, no chart library) and links/password.
+  - Owners can only update scanners where `owner_id` matches their own.
+- **Admin:** `/admin/review-scanners` (create, assign, pause, unassign, QR, monthly WhatsApp report) and `/admin/review-scanners/print`. Both are guarded by `AdminAuthFilter`.
+- **Scan counting:** the same visitor (SHA-256 of IP + User-Agent) within 30 min counts once. Bots and link-preview user agents and HEAD requests are not counted. Reports only count scans after `assigned_at`.
+- **Timestamps are IST wall-clock** (`NOW() AT TIME ZONE 'Asia/Kolkata'`), because the server runs in UTC.
+- **Schema:** `src/main/resources/review-schema.sql`. Run it after `schema.sql`.
+- **Config:** `review.contact.name` and `review.contact.phone` (shown on the unassigned sales page).
+
+### Landing page (`com.menuscanner.landing`)
+
+This is the owner's public services/portfolio page. It lives in its own package and views folder (`WEB-INF/views/landing/`).
+
+- **`/home`**: nginx serves it at the site root (`location = /` proxies to `/menu-scanner/home`), so the link to share is `https://<domain>/`.
+- **`/enquiry`**: contact form POST. It uses a honeypot field (`website`) and allows at most 5 per visitor per hour. Results are stored in `landing_enquiries` (see `landing-schema.sql`).
+- **`/contact.vcf`**: the "Save my contact" vCard.
+- **`/admin/enquiries`**: the admin list, with a WhatsApp reply link and a "mark contacted" action.
+- **`/feedback`**: the "Share feedback" dialog POST (name, shop, location, product, comment). It is published immediately and exactly as written. Limits: 3 per visitor per hour, plus a honeypot. Stored in `landing_feedback`.
+  - The "What clients say" section is `hidden` when there is no visible feedback.
+  - The strip only auto-rotates when the real cards are wider than the screen. It never pads the strip with repeated cards.
+- **`/admin/feedback`**: hide/show/delete only. Feedback text is deliberately not editable.
+- Owner details (name, phone, email, links, demo restaurant slug) are in `LandingProfile.java`. Edit them there.
+
 ## Important Constraints
 
 - **No ORM** — all SQL is hand-written in DAOs with `PreparedStatement`. Keep it that way.

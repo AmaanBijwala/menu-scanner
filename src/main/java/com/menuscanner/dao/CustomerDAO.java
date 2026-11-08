@@ -33,6 +33,18 @@ public class CustomerDAO {
         return 0;
     }
 
+    public boolean existsByPhone(long restaurantId, String phone) throws SQLException {
+        String sql = "SELECT 1 FROM customers WHERE restaurant_id = ? AND phone = ? LIMIT 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, restaurantId);
+            ps.setString(2, phone);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     /** Saves customer and returns generated id. */
     public long save(Customer c) throws SQLException {
         String sql = "INSERT INTO customers " +

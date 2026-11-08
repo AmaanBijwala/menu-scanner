@@ -194,13 +194,18 @@ function submitLead(event) {
         data.push({ name: 'slug', value: urlSlug });
     }
 
+    const $submit = $form.find('[type=submit]');
+    $submit.prop('disabled', true).text('Joining…');
+
     $.ajax({
         url:  contextPath + '/lead-capture',
         type: 'POST',
         data: data,
         success: function (res) {
             if (res.success) {
-                $msgBox.text("You're subscribed! Watch for exclusive offers.")
+                $msgBox.text(res.already
+                            ? "You're already in the VIP Club! Watch WhatsApp for exclusive offers."
+                            : "Welcome to the VIP Club! 🎉 Watch WhatsApp for exclusive offers.")
                        .attr('class', 'alert alert-success')
                        .css('display', 'block');
                 $form.css('display', 'none');
@@ -210,10 +215,15 @@ function submitLead(event) {
                        .css('display', 'block');
             }
         },
-        error: function () {
-            $msgBox.text('Network error. Please try again.')
+        error: function (xhr) {
+            // Validation errors come back as 4xx with {"error": "..."}; show that message
+            const err = xhr.responseJSON && xhr.responseJSON.error;
+            $msgBox.text(err || 'Network error. Please try again.')
                    .attr('class', 'alert alert-error')
                    .css('display', 'block');
+        },
+        complete: function () {
+            $submit.prop('disabled', false).text('Join VIP Club');
         }
     });
 }

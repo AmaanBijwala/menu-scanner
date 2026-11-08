@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=6">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body class="public-menu">
@@ -48,8 +48,8 @@
                 </div>
             </c:if>
         </div>
-        <button class="btn btn-primary" onclick="openOffersModal()" style="flex-shrink:0;margin-top:0.25rem">
-            Get Offers
+        <button class="btn btn-primary vip-cta" onclick="openOffersModal()">
+            <span class="vip-cta-icon" aria-hidden="true">&#11088;</span> Join VIP Club
         </button>
     </div>
 </header>
@@ -79,6 +79,36 @@
 </div>
 </c:if>
 
+<%-- Sticky search + category navigation (built from the sections below by script) --%>
+<c:if test="${not empty menuItems}">
+<div class="mt-bar" id="menuTools">
+    <div class="mt-row">
+        <label class="mt-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="search" id="mtSearch" placeholder="Search dishes, e.g. fried rice" autocomplete="off" enterkeyhint="search" aria-label="Search the menu">
+            <button type="button" id="mtClear" class="mt-clear" aria-label="Clear search" hidden>&#10005;</button>
+        </label>
+        <button type="button" id="mtVeg" class="mt-veg" aria-pressed="false" title="Show veg items only">
+            <span class="veg-indicator veg"></span>Veg
+        </button>
+        <button type="button" id="mtMenuBtn" class="mt-menu-btn" aria-label="All categories" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <nav class="mt-chips" id="mtChips" aria-label="Menu categories"></nav>
+</div>
+
+<div id="mtSheet" class="mt-sheet" hidden>
+    <div class="mt-sheet-box" role="dialog" aria-modal="true" aria-labelledby="mtSheetTitle">
+        <div class="mt-sheet-head">
+            <h3 id="mtSheetTitle">Menu</h3>
+            <button type="button" class="mt-sheet-close" id="mtSheetClose" aria-label="Close">&#10005;</button>
+        </div>
+        <ul id="mtSheetList"></ul>
+    </div>
+</div>
+</c:if>
+
 <main class="menu-container">
     <c:choose>
         <c:when test="${empty menuItems}">
@@ -86,10 +116,14 @@
         </c:when>
         <c:otherwise>
             <c:set var="currentCategory" value=""/>
+            <c:set var="sectionOpen" value="${false}"/>
             <c:forEach var="item" items="${menuItems}">
                 <c:if test="${item.available}">
-                    <c:if test="${item.category != currentCategory}">
+                    <c:if test="${item.category != currentCategory or not sectionOpen}">
+                        <c:if test="${sectionOpen}"></section></c:if>
                         <c:set var="currentCategory" value="${item.category}"/>
+                        <c:set var="sectionOpen" value="${true}"/>
+                        <section class="menu-cat">
                         <h2 class="category-heading"><c:out value="${empty item.category ? 'Our Menu' : item.category}"/></h2>
                     </c:if>
 
@@ -133,6 +167,11 @@
                     </div>
                 </c:if>
             </c:forEach>
+            <c:if test="${sectionOpen}"></section></c:if>
+            <div id="mtEmpty" class="mt-empty" hidden>
+                <p>No dishes match <b id="mtEmptyQ"></b></p>
+                <button type="button" class="btn btn-secondary" id="mtReset">Show full menu</button>
+            </div>
         </c:otherwise>
     </c:choose>
 </main>
@@ -141,9 +180,9 @@
 <div id="offersModal" class="modal" style="display:none" role="dialog" aria-modal="true">
     <div class="modal-content">
         <button class="modal-close" onclick="closeOffersModal()" aria-label="Close">✕</button>
-        <h3>Unlock Exclusive Offers</h3>
+        <h3>Join our VIP Club &#11088;</h3>
         <p style="color:var(--on-surface-muted);font-size:0.875rem;margin-bottom:1.5rem">
-            Share your details to receive deals directly on WhatsApp!
+            Get exclusive deals from <c:out value="${restaurant.name}"/> straight on WhatsApp!
         </p>
         <div id="offerFormMsg" class="alert" style="display:none"></div>
         <form id="leadForm" method="post" action="${pageContext.request.contextPath}/lead-capture" onsubmit="submitLead(event)">
@@ -154,7 +193,7 @@
             </div>
             <div class="form-group">
                 <label>Phone *</label>
-                <input type="tel" name="phone" required maxlength="15" placeholder="10-digit mobile number">
+                <input type="tel" name="phone" required maxlength="15" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number">
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -175,7 +214,7 @@
                 <input type="checkbox" name="consentWhatsapp" value="true" checked>
                 I agree to receive offers on WhatsApp
             </label>
-            <button type="submit" class="btn btn-primary btn-full">Subscribe to Offers</button>
+            <button type="submit" class="btn btn-primary btn-full">Join VIP Club</button>
         </form>
     </div>
 </div>
@@ -215,7 +254,7 @@ function closeLightbox() {
     document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e){
-    if(e.key==='Escape'){ closeLightbox(); closeItemModal(); }
+    if(e.key==='Escape'){ closeLightbox(); closeItemModal(); closeOffersModal(); }
 });
 
 function fmt(n) {
@@ -283,15 +322,157 @@ function closeItemModal() {
     document.body.style.overflow = '';
 }
 </script>
-<script src="${pageContext.request.contextPath}/js/app.js"></script>
+<script src="${pageContext.request.contextPath}/js/app.js?v=3"></script>
 <script>
 (function() {
     var ids = [<c:forEach items="${menuItems}" var="i" varStatus="s">${i.id}<c:if test="${!s.last}">,</c:if></c:forEach>];
     if (!ids.length) return;
-    var fd = new FormData();
-    fd.append('slug', '<c:out value="${restaurant.slug}"/>');
-    fd.append('ids', ids.join(','));
-    fetch(contextPath + '/track-items', { method: 'POST', body: fd, keepalive: true });
+    // URLSearchParams posts as application/x-www-form-urlencoded, which getParameter() reads;
+    // FormData would post multipart and the servlet would see no parameters (400).
+    var body = new URLSearchParams();
+    body.append('slug', '<c:out value="${restaurant.slug}"/>');
+    body.append('ids', ids.join(','));
+    fetch(contextPath + '/track-items', { method: 'POST', body: body, keepalive: true });
+})();
+</script>
+<script>
+// Sticky search, veg filter and category navigation for long menus
+(function() {
+    var bar = document.getElementById('menuTools');
+    if (!bar) return;
+    var input   = document.getElementById('mtSearch');
+    var clearBt = document.getElementById('mtClear');
+    var vegBt   = document.getElementById('mtVeg');
+    var chipNav = document.getElementById('mtChips');
+    var sheet   = document.getElementById('mtSheet');
+    var list    = document.getElementById('mtSheetList');
+    var empty   = document.getElementById('mtEmpty');
+    var main    = document.querySelector('.menu-container');
+
+    var sections = Array.prototype.map.call(document.querySelectorAll('.menu-cat'), function(sec, i) {
+        sec.id = 'cat-' + i;
+        var cards = Array.prototype.map.call(sec.querySelectorAll('.menu-card'), function(card) {
+            var d = card.dataset;
+            return { el: card, veg: d.veg === 'true',
+                     text: norm([d.name, d.desc, d.cat].join(' ')) };
+        });
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'mt-chip';
+        chip.textContent = sec.querySelector('.category-heading').textContent;
+        chip.addEventListener('click', function() { jumpTo(i); });
+        chipNav.appendChild(chip);
+        return { el: sec, name: chip.textContent, cards: cards, chip: chip, visible: cards.length };
+    });
+
+    function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9ऀ-ॿ]+/g, ' '); }
+
+    var vegOnly = false;
+    function apply() {
+        var words = norm(input.value).split(' ').filter(Boolean);
+        var total = 0;
+        sections.forEach(function(s) {
+            var n = 0;
+            s.cards.forEach(function(c) {
+                var show = (!vegOnly || c.veg) && words.every(function(w) { return c.text.indexOf(w) !== -1; });
+                c.el.hidden = !show;
+                if (show) n++;
+            });
+            s.visible = n;
+            s.el.hidden = n === 0;
+            s.chip.hidden = n === 0;
+            total += n;
+        });
+        clearBt.hidden = !input.value;
+        empty.hidden = total > 0;
+        document.getElementById('mtEmptyQ').textContent =
+            (input.value.trim() ? '"' + input.value.trim() + '"' : '') + (vegOnly ? ' (veg only)' : '');
+        // Chips moved around, so re-center the active one even if it is still the same category
+        if (active !== -1) sections[active].chip.classList.remove('active');
+        active = -1;
+        updateActive();
+    }
+
+    // Keep results in view: when filtering from far down the page, go back to the top of the menu
+    function toMenuTop() {
+        var top = main.getBoundingClientRect().top + window.scrollY - bar.offsetHeight;
+        if (window.scrollY > top) window.scrollTo(0, top);
+    }
+
+    input.addEventListener('input', function() { apply(); toMenuTop(); });
+    input.addEventListener('keydown', function(e) { if (e.key === 'Enter') input.blur(); });
+    clearBt.addEventListener('click', function() { input.value = ''; apply(); input.focus(); });
+    vegBt.addEventListener('click', function() {
+        vegOnly = !vegOnly;
+        vegBt.setAttribute('aria-pressed', vegOnly);
+        apply(); toMenuTop();
+    });
+    document.getElementById('mtReset').addEventListener('click', function() {
+        input.value = ''; vegOnly = false; vegBt.setAttribute('aria-pressed', 'false'); apply();
+    });
+
+    function jumpTo(i) {
+        var top = sections[i].el.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 8;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+
+    // Highlight the category currently under the bar, and keep its chip in view
+    var active = -1;
+    function updateActive() {
+        var line = bar.getBoundingClientRect().bottom + 24, cur = -1;
+        sections.forEach(function(s, i) {
+            if (!s.el.hidden && s.el.getBoundingClientRect().top <= line) cur = i;
+        });
+        if (cur === -1) sections.some(function(s, i) { if (!s.el.hidden) { cur = i; return true; } });
+        if (cur === active) return;
+        if (active !== -1) sections[active].chip.classList.remove('active');
+        active = cur;
+        if (cur === -1) return;
+        var chip = sections[cur].chip;
+        chip.classList.add('active');
+        chipNav.scrollTo({ left: chip.offsetLeft - (chipNav.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' });
+    }
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function() { ticking = false; updateActive(); });
+    }, { passive: true });
+
+    // Full category list (☰)
+    function openSheet() {
+        list.innerHTML = '';
+        sections.forEach(function(s, i) {
+            if (s.el.hidden) return;
+            var li = document.createElement('li');
+            var b = document.createElement('button');
+            b.type = 'button';
+            if (i === active) b.className = 'active';
+            var name = document.createElement('span');
+            name.textContent = s.name;
+            var count = document.createElement('span');
+            count.className = 'mt-count';
+            count.textContent = s.visible;
+            b.appendChild(name); b.appendChild(count);
+            b.addEventListener('click', function() { closeSheet(); jumpTo(i); });
+            li.appendChild(b);
+            list.appendChild(li);
+        });
+        sheet.hidden = false;
+        requestAnimationFrame(function() { sheet.classList.add('open'); });
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSheet() {
+        sheet.classList.remove('open');
+        sheet.hidden = true;
+        document.body.style.overflow = '';
+    }
+    document.getElementById('mtMenuBtn').addEventListener('click', openSheet);
+    document.getElementById('mtSheetClose').addEventListener('click', closeSheet);
+    sheet.addEventListener('click', function(e) { if (e.target === sheet) closeSheet(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+
+    apply();
 })();
 </script>
 </body>

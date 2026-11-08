@@ -95,10 +95,12 @@ CREATE TABLE categories (
     id            BIGSERIAL      PRIMARY KEY,
     restaurant_id BIGINT         NOT NULL,
     name          VARCHAR(100)   NOT NULL,
+    display_order INTEGER,                         -- set when the owner arranges categories; NULL = not arranged (A–Z, after arranged ones)
     CONSTRAINT fk_cat_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_categories_restaurant ON categories (restaurant_id);
+-- Existing databases: ALTER TABLE categories ADD COLUMN IF NOT EXISTS display_order INTEGER;
 
 -- ── 7. item_view_counts ─────────────────────────────────────────────
 -- One row per menu item; view_count incremented on every public menu load.

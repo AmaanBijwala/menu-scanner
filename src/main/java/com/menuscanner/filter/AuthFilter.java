@@ -21,7 +21,11 @@ public class AuthFilter implements Filter {
             "/login",
             "/menu",
             "/lead-capture",
-            "/track-items"
+            "/track-items",
+            "/home",          // landing page (com.menuscanner.landing)
+            "/enquiry",
+            "/feedback",
+            "/contact.vcf"
     );
 
     /** Path prefixes that never require login. */
@@ -30,6 +34,9 @@ public class AuthFilter implements Filter {
             "/images/",   // served by ImageServlet from external directory
             "/css/",
             "/js/",
+            "/s/",        // Product 2: Google review sticker landing (com.menuscanner.review)
+            "/o/",        // Product 2: public page of a WhatsApp offer with a photo
+            "/review/",   // Product 2 owner dashboard, guarded by ReviewOwnerAuthFilter
             "/admin/"     // admin routes are guarded by AdminAuthFilter
     );
 
@@ -43,6 +50,13 @@ public class AuthFilter implements Filter {
         String path = req.getServletPath();
         String pi   = req.getPathInfo();
         if (pi != null) path = path + pi;   // wildcard servlets (e.g. /images/*) need pathInfo appended
+
+        // "/admin" (no trailing slash) isn't matched by AdminAuthFilter's "/admin/*";
+        // send it into the admin area instead of the restaurant login.
+        if ("/admin".equals(path)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/");
+            return;
+        }
 
         if (isPublic(path)) {
             chain.doFilter(request, response);

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=6">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
@@ -57,9 +58,25 @@
                             <span class="mm-cat-empty">No categories yet</span>
                         </c:when>
                         <c:otherwise>
-                            <c:forEach var="cat" items="${categories}">
+                            <c:forEach var="cat" items="${categories}" varStatus="st">
                                 <span class="mm-cat-chip">
+                                    <c:if test="${!st.first}">
+                                    <form method="post" action="${pageContext.request.contextPath}/categories" style="display:inline">
+                                        <input type="hidden" name="action" value="move">
+                                        <input type="hidden" name="dir" value="up">
+                                        <input type="hidden" name="id" value="${cat.id}">
+                                        <button type="submit" class="mm-cat-chip-move" title="Show earlier on the menu" aria-label="Move <c:out value='${cat.name}'/> earlier">&#9664;</button>
+                                    </form>
+                                    </c:if>
                                     <c:out value="${cat.name}"/>
+                                    <c:if test="${!st.last}">
+                                    <form method="post" action="${pageContext.request.contextPath}/categories" style="display:inline">
+                                        <input type="hidden" name="action" value="move">
+                                        <input type="hidden" name="dir" value="down">
+                                        <input type="hidden" name="id" value="${cat.id}">
+                                        <button type="submit" class="mm-cat-chip-move" title="Show later on the menu" aria-label="Move <c:out value='${cat.name}'/> later">&#9654;</button>
+                                    </form>
+                                    </c:if>
                                     <form method="post" action="${pageContext.request.contextPath}/categories" style="display:inline">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="${cat.id}">
@@ -70,6 +87,9 @@
                         </c:otherwise>
                     </c:choose>
                 </div>
+                <c:if test="${fn:length(categories) > 1}">
+                    <p class="mm-cat-hint">Optional: use &#9664; &#9654; to choose the order customers see. Untouched, categories stay A&ndash;Z.</p>
+                </c:if>
             </div>
 
         <%-- Bulk Upload Panel --%>

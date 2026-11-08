@@ -22,6 +22,9 @@
         .admin-topbar-brand { font-weight: 800; font-size: 1rem; letter-spacing: -0.01em; }
         .admin-topbar-brand span { color: var(--primary); }
         .admin-topbar-right { display: flex; align-items: center; gap: 1rem; font-size: 0.8rem; color: var(--on-surface-muted); }
+        .admin-topbar-nav { display: flex; gap: 0.25rem; }
+        .admin-topbar-nav a { padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600; color: var(--on-surface-muted); text-decoration: none; }
+        .admin-topbar-nav a.active, .admin-topbar-nav a:hover { color: var(--on-surface); background: rgba(255,255,255,0.06); }
 
         .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
@@ -121,6 +124,12 @@
 
 <header class="admin-topbar">
     <div class="admin-topbar-brand">Menu Scanner <span>Admin</span></div>
+    <nav class="admin-topbar-nav">
+        <a href="${pageContext.request.contextPath}/admin/" class="active">Restaurants</a>
+        <a href="${pageContext.request.contextPath}/admin/review-scanners">Review Scanners</a>
+        <a href="${pageContext.request.contextPath}/admin/enquiries">Enquiries</a>
+        <a href="${pageContext.request.contextPath}/admin/feedback">Feedback</a>
+    </nav>
     <div class="admin-topbar-right">
         <span><c:out value="${sessionScope.adminEmail}"/></span>
         <form method="post" action="${pageContext.request.contextPath}/admin/" style="display:inline">
