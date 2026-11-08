@@ -128,6 +128,9 @@
         .greet { margin: .25rem 0; }
         .greet h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
         .greet p { margin: .15rem 0 0; font-size: .85rem; color: var(--on-surface-muted); }
+        .greet .sid { display: inline-flex; align-items: center; gap: .4rem; margin-top: .55rem; padding: .3rem .75rem;
+                      border-radius: 999px; background: #f1ecf7; color: var(--on-surface-muted); font-size: .76rem; }
+        .greet .sid b { color: #5b3fa8; font-weight: 800; letter-spacing: .04em; }
         .greet .wave { display: inline-block; transform-origin: 70% 70%; animation: wave 2.4s .4s ease-in-out 2; }
         @keyframes wave { 0%,60%,100% { transform: rotate(0); } 10%,30% { transform: rotate(16deg); } 20%,40% { transform: rotate(-10deg); } }
 
@@ -203,6 +206,9 @@
     <div class="greet">
         <h1>Hi<c:if test="${not empty ownerFirstName}"> <c:out value="${ownerFirstName}"/></c:if> <span class="wave" aria-hidden="true">&#128075;</span></h1>
         <p>Here's how your QR is doing.</p>
+        <c:if test="${not empty current}">
+            <div class="sid" title="Share this ID with Bijwala Solutions when you need help">Your scanner unique ID <b><c:out value="${current.stickerNo}"/></b></div>
+        </c:if>
     </div>
     <c:if test="${not empty loadError}"><div class="alert alert-error"><c:out value="${loadError}"/></div></c:if>
 

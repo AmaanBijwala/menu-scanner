@@ -38,7 +38,7 @@
         h1 { margin: .55rem 0 .35rem; font-size: 1.25rem; line-height: 1.25; }
         .msg { margin: 0; font-size: .95rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; color: #3d3650; }
         .brand { margin: 1.1rem 0 0; text-align: center; font-size: .74rem; font-weight: 600; color: #8a85a0; }
-        .brand span { font-weight: 400; }
+        .brand span { display: block; margin-top: .15rem; font-size: .68rem; font-weight: 400; }
     </style>
 </head>
 <body>
@@ -51,7 +51,7 @@
             <p class="msg"><c:out value="${offerText}"/></p>
         </div>
     </article>
-    <p class="brand">The Socio Advert <span>by Bijwala Solutions</span></p>
+    <p class="brand">The Socio Advert<span>Powered by Bijwala Solutions</span></p>
 </main>
 </body>
 </html>

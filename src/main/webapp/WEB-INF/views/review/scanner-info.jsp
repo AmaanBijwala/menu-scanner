@@ -35,7 +35,7 @@
         .contact-name { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.9rem; }
         .sticker { margin-top: 1.25rem; font-size: 0.72rem; color: #b8a99a; letter-spacing: 0.05em; }
         .brand { margin: 0.6rem 0 0; font-size: 0.74rem; font-weight: 600; color: #9a8b7c; }
-        .brand span { font-weight: 400; }
+        .brand span { display: block; margin-top: .15rem; font-size: .68rem; font-weight: 400; }
     </style>
 </head>
 <body>
@@ -71,7 +71,7 @@
         </c:otherwise>
     </c:choose>
     <div class="sticker">SCANNER <c:out value="${stickerNo}"/></div>
-    <p class="brand">The Socio Advert <span>by Bijwala Solutions</span></p>
+    <p class="brand">The Socio Advert<span>Powered by Bijwala Solutions</span></p>
 </main>
 </body>
 </html>

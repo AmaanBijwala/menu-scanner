@@ -176,9 +176,8 @@
         .thanks { margin: 1.3rem 0 0; font-size: .82rem; color: var(--muted); animation: up .6s 1.2s both; }
         .thanks span { display: inline-block; animation: beat 1.4s ease-in-out infinite; }
         @keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.3); } 30% { transform: scale(1); } }
-        .sticker { margin-top: .6rem; font-size: .66rem; letter-spacing: .12em; color: #a7a3b8; }
         .brand { margin: .9rem 0 0; font-size: .74rem; font-weight: 600; color: #8a85a0; }
-        .brand span { font-weight: 400; }
+        .brand span { display: block; margin-top: .15rem; font-size: .68rem; font-weight: 400; }
         .preview-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 60; padding: .5rem 1rem calc(.5rem); padding-top: max(.5rem, env(safe-area-inset-top)); text-align: center; font-size: .78rem; font-weight: 600; background: #1d1b2f; color: #fff; }
 
         /* ── "Join our VIP Club" box (always first) ── */
@@ -353,8 +352,7 @@
     </nav>
 
     <p class="thanks">Your support means a lot <span>&#10084;&#65039;</span></p>
-    <div class="sticker">SCANNER <c:out value="${scanner.stickerNo}"/></div>
-    <p class="brand">The Socio Advert <span>by Bijwala Solutions</span></p>
+    <p class="brand">The Socio Advert<span>Powered by Bijwala Solutions</span></p>
 </main>
 
 <c:if test="${scanner.joinForm}">
