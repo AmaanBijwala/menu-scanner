@@ -1,3 +1,6 @@
+# Shell scripts run on Linux servers; keep LF line endings on every OS
+*.sh text eol=lf
+
 # Binary files: never convert line endings
 *.pdf binary
 *.png binary
