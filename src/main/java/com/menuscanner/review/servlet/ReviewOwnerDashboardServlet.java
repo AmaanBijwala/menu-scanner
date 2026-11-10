@@ -55,14 +55,32 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         long ownerId = ownerId(req);
+        String firstName = null;
+        List<ReviewScanner> scanners = List.of();
+        try {
+            ReviewOwner me = ownerDAO.findById(ownerId);
+            if (me != null) firstName = me.getFirstName();
+            scanners = scannerDAO.findByOwner(ownerId);
+        } catch (SQLException e) {
+            getServletContext().log("Review owner dashboard error", e);
+            req.setAttribute("loadError", "Could not load your data. Please refresh in a minute.");
+        }
+        render(req, resp, scanners, firstName);
+    }
+
+    /**
+     * Loads the chosen sticker's tab and shows the dashboard. Shared with the super admin's
+     * read-only view ({@link ReviewAdminDashboardServlet}), which passes every assigned sticker.
+     */
+    protected void render(HttpServletRequest req, HttpServletResponse resp,
+                          List<ReviewScanner> scanners, String firstName)
+            throws ServletException, IOException {
         String tabParam = req.getParameter("tab");
         String tab = "links".equals(tabParam) || "customers".equals(tabParam) ? tabParam : "analytics";
         YearMonth month = parseMonth(req.getParameter("month"));
 
         try {
-            ReviewOwner me = ownerDAO.findById(ownerId);
-            if (me != null) req.setAttribute("ownerFirstName", me.getFirstName());
-            List<ReviewScanner> scanners = scannerDAO.findByOwner(ownerId);
+            if (firstName != null) req.setAttribute("ownerFirstName", firstName);
             req.setAttribute("scanners", scanners);
             ReviewScanner current = pick(scanners, req.getParameter("scanner"));
 
@@ -73,7 +91,7 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
                 if ("customers".equals(tab)) {
                     List<ReviewContact> contacts = contactDAO.findForScanner(current);
                     if ("csv".equals(req.getParameter("export"))) {
-                        writeCsv(resp, current, contacts);
+                        writeCsv(resp, current, contacts, Boolean.TRUE.equals(req.getAttribute("adminView")));
                         return;
                     }
                     req.setAttribute("contacts", contacts);
@@ -227,7 +245,9 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
     }
 
     /** Excel-friendly CSV of the VIP Club list (UTF-8 with BOM so names in any script open correctly). */
-    private static void writeCsv(HttpServletResponse resp, ReviewScanner scanner, List<ReviewContact> contacts)
+    /** maskPhones: the super admin's copy shows only the first 6 digits (98765XXXX style). */
+    private static void writeCsv(HttpServletResponse resp, ReviewScanner scanner, List<ReviewContact> contacts,
+                                 boolean maskPhones)
             throws IOException {
         String file = scanner.getBusinessName().replaceAll("[^A-Za-z0-9]+", "-").replaceAll("^-|-$", "") + "-vip-club.csv";
         resp.setContentType("text/csv;charset=UTF-8");
@@ -238,8 +258,12 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
         var fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", java.util.Locale.ENGLISH);
         for (ReviewContact c : contacts) {
             out.write(csv(c.getName()) + "," + (c.getAge() == null ? "" : c.getAge()) + "," + csv(c.getGender()) + ","
-                    + "+91" + c.getPhone() + "," + csv(c.getCreatedAt().toLocalDateTime().format(fmt)) + "\r\n");
+                    + "+91" + (maskPhones ? maskPhone(c.getPhone()) : c.getPhone()) + "," + csv(c.getCreatedAt().toLocalDateTime().format(fmt)) + "\r\n");
         }
+    }
+
+    private static String maskPhone(String phone) {
+        return phone == null || phone.length() <= 4 ? "XXXX" : phone.substring(0, phone.length() - 4) + "XXXX";
     }
 
     private static String csv(String v) {

@@ -180,6 +180,7 @@
             </form>
             <a class="btn btn-outline" target="_blank" rel="noopener"
                href="${pageContext.request.contextPath}/admin/review-scanners/print?ids=unassigned">&#128424; Print all free stickers</a>
+            <a class="btn btn-outline" href="${pageContext.request.contextPath}/admin/review-view">&#128065; Client dashboards</a>
         </div>
     </div>
 
@@ -280,6 +281,8 @@
                                     </button>
                                     <button type="button" class="btn btn-xs btn-outline" onclick="openQrModal(this.closest('tr'))">QR</button>
                                     <c:if test="${s.assigned}">
+                                        <a class="btn btn-xs btn-outline" href="${pageContext.request.contextPath}/admin/review-view?scanner=${s.id}"
+                                           title="Open this client's dashboard (read-only)">&#128065; Dashboard</a>
                                         <button type="button" class="btn btn-xs btn-outline" onclick="openReportModal(this.closest('tr'))">&#128202; Report</button>
                                         <textarea hidden id="report-${s.id}"><c:out value="${reportTexts[s.id]}"/></textarea>
                                         <c:choose>

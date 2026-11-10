@@ -84,6 +84,7 @@ A separate product in the same WAR, kept in its own package (`review/model`, `re
 - **Owner dashboard:** the login page is `/review/login` (phone and password, `review_owners`). The login is created from the admin assign form, where the same phone means the same login. `/review/*` is guarded by `ReviewOwnerAuthFilter`.
   - `/review/dashboard` has two tabs: analytics (built with CSS bars, no chart library) and links/password.
   - Owners can only update scanners where `owner_id` matches their own.
+- **Super admin view:** `/admin/review-view?scanner={id}` (`ReviewAdminDashboardServlet`, guarded by `AdminAuthFilter`) shows any assigned sticker's owner dashboard read-only: analytics, VIP Club list + CSV, offers sent, links. It reuses `ReviewOwnerDashboardServlet.render` and the same JSP with `adminView` set, which hides every form; its POST returns 403. Customer phone numbers are masked there (last 4 digits shown as XXXX, also in its CSV) and the offer recipients' numbers are not sent to the page. Opened from "👁 Dashboard" on each admin row or "Client dashboards".
 - **Admin:** `/admin/review-scanners` (create, assign, pause, unassign, QR, monthly WhatsApp report) and `/admin/review-scanners/print`. Both are guarded by `AdminAuthFilter`.
 - **Scan counting:** the same visitor (SHA-256 of IP + User-Agent) within 30 min counts once. Bots and link-preview user agents and HEAD requests are not counted. Reports only count scans after `assigned_at`.
 - **Timestamps are IST wall-clock** (`NOW() AT TIME ZONE 'Asia/Kolkata'`), because the server runs in UTC.

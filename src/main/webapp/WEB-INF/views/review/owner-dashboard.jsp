@@ -4,6 +4,8 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="selfQs" value="scanner=${current.id}"/>
+<%-- adminView: the super admin's read-only copy (/admin/review-view); every form is hidden there --%>
+<c:set var="dash" value="${ctx}${adminView ? '/admin/review-view' : '/review/dashboard'}"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -197,15 +199,28 @@
             <small>Review QR dashboard</small>
         </div>
     </div>
-    <form method="post" action="${ctx}/review/logout">
-        <button class="logout" type="submit">Log out</button>
-    </form>
+    <c:choose>
+        <c:when test="${adminView}"><a class="logout" href="${ctx}/admin/review-scanners">&lsaquo; Admin</a></c:when>
+        <c:otherwise>
+            <form method="post" action="${ctx}/review/logout">
+                <button class="logout" type="submit">Log out</button>
+            </form>
+        </c:otherwise>
+    </c:choose>
 </header>
 
 <div class="wrap">
     <div class="greet">
-        <h1>Hi<c:if test="${not empty ownerFirstName}"> <c:out value="${ownerFirstName}"/></c:if> <span class="wave" aria-hidden="true">&#128075;</span></h1>
-        <p>Here's how your QR is doing.</p>
+        <c:choose>
+            <c:when test="${adminView}">
+                <h1>Super admin view</h1>
+                <p>Read-only. Pick any client below to see their dashboard exactly as they do.</p>
+            </c:when>
+            <c:otherwise>
+                <h1>Hi<c:if test="${not empty ownerFirstName}"> <c:out value="${ownerFirstName}"/></c:if> <span class="wave" aria-hidden="true">&#128075;</span></h1>
+                <p>Here's how your QR is doing.</p>
+            </c:otherwise>
+        </c:choose>
         <c:if test="${not empty current}">
             <div class="sid" title="Share this ID with Bijwala Solutions when you need help">Your scanner unique ID <b><c:out value="${current.stickerNo}"/></b></div>
         </c:if>
@@ -221,11 +236,11 @@
     </c:when>
     <c:otherwise>
 
-    <c:if test="${fn:length(scanners) > 1}">
-        <form class="switcher row-between" method="get" action="${ctx}/review/dashboard">
+    <c:if test="${adminView or fn:length(scanners) > 1}">
+        <form class="switcher row-between" method="get" action="${dash}">
             <input type="hidden" name="tab" value="${tab}">
             <input type="hidden" name="month" value="${month}">
-            <label for="sw" style="font-size:.8rem;color:var(--on-surface-muted)">Sticker</label>
+            <label for="sw" style="font-size:.8rem;color:var(--on-surface-muted)">${adminView ? 'Client' : 'Sticker'}</label>
             <select id="sw" name="scanner" onchange="this.form.submit()">
                 <c:forEach var="s" items="${scanners}">
                     <option value="${s.id}" ${s.id == current.id ? 'selected' : ''}><c:out value="${s.stickerNo}"/> · <c:out value="${s.businessName}"/></option>
@@ -235,9 +250,9 @@
     </c:if>
 
     <nav class="tabs">
-        <a href="${ctx}/review/dashboard?tab=analytics&${selfQs}" class="${tab eq 'analytics' ? 'on' : ''}">&#128202; Analytics</a>
-        <a href="${ctx}/review/dashboard?tab=customers&${selfQs}" class="${tab eq 'customers' ? 'on' : ''}">&#128081; VIP Club</a>
-        <a href="${ctx}/review/dashboard?tab=links&${selfQs}" class="${tab eq 'links' ? 'on' : ''}">&#128279; Links &amp; settings</a>
+        <a href="${dash}?tab=analytics&${selfQs}" class="${tab eq 'analytics' ? 'on' : ''}">&#128202; Analytics</a>
+        <a href="${dash}?tab=customers&${selfQs}" class="${tab eq 'customers' ? 'on' : ''}">&#128081; VIP Club</a>
+        <a href="${dash}?tab=links&${selfQs}" class="${tab eq 'links' ? 'on' : ''}">&#128279; Links &amp; settings</a>
     </nav>
 
     <%-- ═══════════════════════ VIP CLUB (customers) ═══════════════════════ --%>
@@ -257,12 +272,13 @@
             <div class="row-between" style="margin-bottom:.35rem">
                 <h2>Your VIP Club list</h2>
                 <div class="btns" style="margin-top:0">
-                    <button type="button" class="btn btn-primary" onclick="toggleAddVip()">&#10133; Add VIP</button>
+                    <c:if test="${not adminView}"><button type="button" class="btn btn-primary" onclick="toggleAddVip()">&#10133; Add VIP</button></c:if>
                     <c:if test="${not empty contacts}">
-                        <a class="btn btn-outline" href="${ctx}/review/dashboard?tab=customers&${selfQs}&export=csv">&#11015; Download Excel (CSV)</a>
+                        <a class="btn btn-outline" href="${dash}?tab=customers&${selfQs}&export=csv">&#11015; Download Excel (CSV)</a>
                     </c:if>
                 </div>
             </div>
+            <c:if test="${not adminView}">
             <form id="addVip" class="add-vip" method="post" action="${ctx}/review/dashboard" hidden>
                 <input type="hidden" name="action" value="addContact">
                 <input type="hidden" name="scanner" value="${current.id}">
@@ -271,6 +287,7 @@
                 <button type="submit" class="btn btn-primary">Save</button>
                 <p class="hint" style="grid-column:1/-1;margin:0">Only add customers who agreed to get offers on WhatsApp.</p>
             </form>
+            </c:if>
             <p class="hint">
                 <c:choose>
                     <c:when test="${current.joinForm}">Customers who scan your QR can tap <b style="color:var(--on-surface)">&ldquo;Join our VIP Club&rdquo;</b> and leave their details. Use this list to send offers on WhatsApp.</c:when>
@@ -285,21 +302,27 @@
                     </div>
                 </c:when>
                 <c:otherwise>
+                    <c:if test="${not adminView}">
                     <div class="sel-bar">
                         <span id="selCount">0 selected</span>
                         <button type="button" class="btn btn-wa" id="nextBtn" onclick="openCompose()" disabled>Next &rsaquo;</button>
                     </div>
+                    </c:if>
                     <div class="tbl-wrap">
                         <table class="contacts">
-                            <thead><tr><th class="ck"><input type="checkbox" id="selAll" aria-label="Select all" onchange="selectAll(this.checked)"></th><th>Name</th><th>Age</th><th>Gender</th><th>WhatsApp</th><th>Joined</th></tr></thead>
+                            <thead><tr><c:if test="${not adminView}"><th class="ck"><input type="checkbox" id="selAll" aria-label="Select all" onchange="selectAll(this.checked)"></th></c:if><th>Name</th><th>Age</th><th>Gender</th><th>WhatsApp</th><th>Joined</th></tr></thead>
                             <tbody>
                             <c:forEach var="m" items="${contacts}">
                                 <tr>
-                                    <td class="ck"><input type="checkbox" class="vip-ck" data-name="<c:out value='${m.name}'/>" data-phone="${m.phone}" aria-label="Select <c:out value='${m.name}'/>" onchange="updateSel()"></td>
+                                    <c:if test="${not adminView}"><td class="ck"><input type="checkbox" class="vip-ck" data-name="<c:out value='${m.name}'/>" data-phone="${m.phone}" aria-label="Select <c:out value='${m.name}'/>" onchange="updateSel()"></td></c:if>
                                     <td><c:out value="${m.name}"/></td>
                                     <td>${empty m.age ? '—' : m.age}</td>
                                     <td><c:out value="${empty m.gender ? '—' : m.gender}"/></td>
-                                    <td><a href="https://wa.me/91${m.phone}" target="_blank" rel="noopener">+91 ${m.phone}</a></td>
+                                    <td><c:choose>
+                                        <%-- super admin never sees a client's full customer numbers --%>
+                                        <c:when test="${adminView}">+91 ${fn:substring(m.phone, 0, fn:length(m.phone) - 4)}XXXX</c:when>
+                                        <c:otherwise><a href="https://wa.me/91${m.phone}" target="_blank" rel="noopener">+91 ${m.phone}</a></c:otherwise>
+                                    </c:choose></td>
                                     <td class="when"><fmt:formatDate value="${m.createdAt}" pattern="dd MMM, hh:mm a"/></td>
                                 </tr>
                             </c:forEach>
@@ -322,16 +345,17 @@
                                 <small><fmt:formatDate value="${b.createdAt}" pattern="dd MMM yyyy, hh:mm a"/> &middot; sent to ${b.sentCount} of ${b.total}</small>
                             </div>
                             <span class="state ${b.sentCount == b.total ? 'live' : 'paused'}">${b.sentCount}/${b.total}</span>
-                            <button type="button" class="btn btn-outline" onclick="openHistory(this.closest('.bc'))">Open</button>
-                            <c:forEach var="r" items="${b.recipients}">
+                            <c:if test="${not adminView}"><button type="button" class="btn btn-outline" onclick="openHistory(this.closest('.bc'))">Open</button></c:if>
+                            <c:if test="${not adminView}"><c:forEach var="r" items="${b.recipients}">
                                 <i hidden class="rcpt" data-name="<c:out value='${r.name}'/>" data-phone="${r.phone}" data-sent="${r.sent}"></i>
-                            </c:forEach>
+                            </c:forEach></c:if>
                         </li>
                     </c:forEach>
                 </ul>
             </div>
         </c:if>
 
+        <c:if test="${not adminView}">
         <%-- Step 2: write the offer --%>
         <div class="panel" id="vipCompose" hidden>
             <h2>Write your offer</h2>
@@ -366,19 +390,20 @@
             <p class="hint">Tap <b style="color:var(--on-surface)">Send</b>. WhatsApp opens with your message ready. Press send there, come back, and tap the next one. Progress is saved, so you can finish later from &ldquo;Offers sent&rdquo;.</p>
             <ul class="queue" id="queueList"></ul>
             <div class="btns">
-                <a class="btn btn-outline" href="${ctx}/review/dashboard?tab=customers&${selfQs}">Done</a>
+                <a class="btn btn-outline" href="${dash}?tab=customers&${selfQs}">Done</a>
             </div>
         </div>
+        </c:if>
     </c:if>
 
     <%-- ═══════════════════════ ANALYTICS ═══════════════════════ --%>
     <c:if test="${tab eq 'analytics' and not empty a}">
         <div class="row-between">
             <div class="month-nav">
-                <a href="${ctx}/review/dashboard?tab=analytics&${selfQs}&month=${prevMonth}" aria-label="Previous month">&#8249;</a>
+                <a href="${dash}?tab=analytics&${selfQs}&month=${prevMonth}" aria-label="Previous month">&#8249;</a>
                 <strong><c:out value="${monthLabel}"/></strong>
                 <c:choose>
-                    <c:when test="${not empty nextMonth}"><a href="${ctx}/review/dashboard?tab=analytics&${selfQs}&month=${nextMonth}" aria-label="Next month">&#8250;</a></c:when>
+                    <c:when test="${not empty nextMonth}"><a href="${dash}?tab=analytics&${selfQs}&month=${nextMonth}" aria-label="Next month">&#8250;</a></c:when>
                     <c:otherwise><span class="dis" aria-hidden="true">&#8250;</span></c:otherwise>
                 </c:choose>
             </div>
@@ -536,6 +561,7 @@
             </div>
 
             <form method="post" action="${ctx}/review/dashboard">
+                <fieldset ${adminView ? 'disabled' : ''} style="border:0;margin:0;padding:0;min-width:0">
                 <input type="hidden" name="action" value="saveLinks">
                 <input type="hidden" name="scanner" value="${current.id}">
                 <c:forEach var="p" items="${platforms}">
@@ -557,10 +583,12 @@
                         </div>
                     </div>
                 </c:forEach>
-                <button type="submit" class="btn btn-primary">Save links</button>
+                <c:if test="${not adminView}"><button type="submit" class="btn btn-primary">Save links</button></c:if>
+                </fieldset>
             </form>
         </div>
 
+        <c:if test="${not adminView}">
         <div class="panel" id="password">
             <h2>Change password</h2>
             <p class="hint">You log in with <b style="color:var(--on-surface)">+91 <c:out value="${sessionScope.reviewOwnerPhone}"/></b>.</p>
@@ -575,6 +603,7 @@
                 <button type="submit" class="btn btn-outline">Change password</button>
             </form>
         </div>
+        </c:if>
     </c:if>
 
     </c:otherwise>
