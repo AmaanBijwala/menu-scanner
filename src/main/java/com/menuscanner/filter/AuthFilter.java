@@ -36,6 +36,8 @@ public class AuthFilter implements Filter {
             "/js/",
             "/s/",        // Product 2: Google review sticker landing (com.menuscanner.review)
             "/o/",        // Product 2: public page of a WhatsApp offer with a photo
+            "/rw/",       // Product 2: customer rewards page (stamp card / scratch card)
+            "/wa/",       // Product 2: WhatsApp Cloud API webhook (checks Meta's signature itself)
             "/review/",   // Product 2 owner dashboard, guarded by ReviewOwnerAuthFilter
             "/admin/"     // admin routes are guarded by AdminAuthFilter
     );

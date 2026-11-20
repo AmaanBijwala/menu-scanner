@@ -141,3 +141,107 @@ CREATE TABLE IF NOT EXISTS review_broadcast_recipients (
 ALTER TABLE review_broadcasts ADD COLUMN IF NOT EXISTS image_path VARCHAR(200);   -- under the images dir, e.g. offers/12/<uuid>.jpg
 ALTER TABLE review_broadcasts ADD COLUMN IF NOT EXISTS code       VARCHAR(12);    -- only set when there is a photo
 CREATE UNIQUE INDEX IF NOT EXISTS uq_review_broadcasts_code ON review_broadcasts (code);
+
+-- ── 12. Rewards: digital stamp card + scratch card ──────────
+-- Both are off for every sticker until the super admin allows them (Features on the admin page).
+-- Customers prove their number by sending "VERIFY <token>" to our WhatsApp Business number
+-- (review_verifications); the WhatsApp Cloud API webhook (/wa/webhook) marks the token verified.
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS stamp_allowed   BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS scratch_allowed BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS geo_check       BOOLEAN NOT NULL DEFAULT FALSE;   -- customer must be near the shop
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS shop_lat        DOUBLE PRECISION;
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS shop_lng        DOUBLE PRECISION;
+
+CREATE TABLE IF NOT EXISTS review_verifications (
+    token        VARCHAR(8)   PRIMARY KEY,           -- what the customer sends: "VERIFY K7P2QX"
+    scanner_id   BIGINT       NOT NULL REFERENCES review_scanners(id) ON DELETE CASCADE,
+    browser_key  VARCHAR(64)  NOT NULL,              -- kept in the customer's session; only that browser can use the result
+    phone        VARCHAR(10),                        -- set by the webhook from the WhatsApp sender
+    verified_at  TIMESTAMP,
+    created_at   TIMESTAMP    DEFAULT (NOW() AT TIME ZONE 'Asia/Kolkata') NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_review_verifications_created ON review_verifications (created_at);
+
+-- Stamp card settings, one per sticker
+CREATE TABLE IF NOT EXISTS review_stamp_programs (
+    scanner_id     BIGINT        PRIMARY KEY REFERENCES review_scanners(id) ON DELETE CASCADE,
+    stamps_needed  SMALLINT      NOT NULL CHECK (stamps_needed BETWEEN 2 AND 50),
+    reward         VARCHAR(150)  NOT NULL,
+    active         BOOLEAN       NOT NULL DEFAULT TRUE,
+    updated_at     TIMESTAMP     DEFAULT (NOW() AT TIME ZONE 'Asia/Kolkata') NOT NULL
+);
+
+-- One stamp per phone per sticker per day. redeemed_at is set on all of a card's stamps when
+-- the owner gives the reward, so the card starts again from 0.
+CREATE TABLE IF NOT EXISTS review_stamps (
+    id           BIGSERIAL    PRIMARY KEY,
+    scanner_id   BIGINT       NOT NULL REFERENCES review_scanners(id) ON DELETE CASCADE,
+    phone        VARCHAR(10)  NOT NULL,
+    stamped_on   DATE         NOT NULL,
+    created_at   TIMESTAMP    DEFAULT (NOW() AT TIME ZONE 'Asia/Kolkata') NOT NULL,
+    redeemed_at  TIMESTAMP,
+    CONSTRAINT uq_review_stamps_day UNIQUE (scanner_id, phone, stamped_on)
+);
+CREATE INDEX IF NOT EXISTS idx_review_stamps_open ON review_stamps (scanner_id, phone) WHERE redeemed_at IS NULL;
+
+-- A scratch-card campaign. AMOUNT: prizes come from slabs until they run out.
+-- OFFER: every scratch shows one of the owner's offer texts. Only one active campaign per sticker;
+-- the owner starts a new one by hand when the budget is used up.
+CREATE TABLE IF NOT EXISTS review_scratch_campaigns (
+    id           BIGSERIAL   PRIMARY KEY,
+    scanner_id   BIGINT      NOT NULL REFERENCES review_scanners(id) ON DELETE CASCADE,
+    mode         VARCHAR(10) NOT NULL CHECK (mode IN ('AMOUNT', 'OFFER')),
+    win_percent  SMALLINT    NOT NULL DEFAULT 40 CHECK (win_percent BETWEEN 1 AND 100),
+    active       BOOLEAN     NOT NULL DEFAULT TRUE,
+    created_at   TIMESTAMP   DEFAULT (NOW() AT TIME ZONE 'Asia/Kolkata') NOT NULL,
+    ended_at     TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_review_scratch_one_active ON review_scratch_campaigns (scanner_id) WHERE active;
+
+-- AMOUNT mode: "₹50 off × 2, min bill ₹500". remaining goes down as customers win.
+CREATE TABLE IF NOT EXISTS review_scratch_slabs (
+    id           BIGSERIAL  PRIMARY KEY,
+    campaign_id  BIGINT     NOT NULL REFERENCES review_scratch_campaigns(id) ON DELETE CASCADE,
+    amount       INT        NOT NULL CHECK (amount > 0),
+    min_bill     INT        NOT NULL DEFAULT 0 CHECK (min_bill >= 0),
+    total_count  INT        NOT NULL CHECK (total_count > 0),
+    remaining    INT        NOT NULL CHECK (remaining >= 0)
+);
+
+-- OFFER mode texts
+CREATE TABLE IF NOT EXISTS review_scratch_offers (
+    id           BIGSERIAL     PRIMARY KEY,
+    campaign_id  BIGINT        NOT NULL REFERENCES review_scratch_campaigns(id) ON DELETE CASCADE,
+    text         VARCHAR(200)  NOT NULL
+);
+
+-- One scratch per phone per sticker per day. code is shown at the counter to claim a win.
+CREATE TABLE IF NOT EXISTS review_scratch_plays (
+    id           BIGSERIAL     PRIMARY KEY,
+    scanner_id   BIGINT        NOT NULL REFERENCES review_scanners(id) ON DELETE CASCADE,
+    campaign_id  BIGINT        NOT NULL REFERENCES review_scratch_campaigns(id) ON DELETE CASCADE,
+    phone        VARCHAR(10)   NOT NULL,
+    played_on    DATE          NOT NULL,
+    bill_amount  INT,
+    won          BOOLEAN       NOT NULL,
+    slab_id      BIGINT        REFERENCES review_scratch_slabs(id) ON DELETE SET NULL,
+    amount       INT,
+    offer_text   VARCHAR(200),
+    code         VARCHAR(8)    UNIQUE,
+    redeemed_at  TIMESTAMP,
+    created_at   TIMESTAMP     DEFAULT (NOW() AT TIME ZONE 'Asia/Kolkata') NOT NULL,
+    CONSTRAINT uq_review_scratch_day UNIQUE (scanner_id, phone, played_on)
+);
+CREATE INDEX IF NOT EXISTS idx_review_scratch_plays_campaign ON review_scratch_plays (campaign_id, created_at);
+
+-- ── 13. Link order on the scan page ──────────────────────────────────────────
+-- Comma-separated platform names set by the super admin, e.g. 'INSTAGRAM,GOOGLE'.
+-- NULL = the default order (Google, Instagram, Facebook, WhatsApp, YouTube).
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS link_order VARCHAR(100);
+
+-- Guest WiFi shown on the scan page ("WIFI" in link_order); the owner can change it.
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS wifi_name     VARCHAR(64);
+ALTER TABLE review_scanners ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(64);
+ALTER TABLE review_clicks DROP CONSTRAINT IF EXISTS chk_review_clicks_platform;
+ALTER TABLE review_clicks ADD CONSTRAINT chk_review_clicks_platform
+    CHECK (platform IN ('GOOGLE', 'INSTAGRAM', 'FACEBOOK', 'WHATSAPP', 'YOUTUBE', 'WIFI'));

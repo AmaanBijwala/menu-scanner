@@ -114,14 +114,14 @@ public class ReviewScannerDAO {
      * (or on first assignment), so editing links/phone keeps the report history.
      */
     public void assign(long id, String businessName, String ownerPhone, Map<ReviewPlatform, String> links,
-                       boolean joinForm) throws SQLException {
+                       boolean joinForm, String linkOrder, String wifiName, String wifiPassword) throws SQLException {
         String sql =
             "UPDATE review_scanners SET " +
             "  assigned_at = CASE WHEN assigned_at IS NULL OR business_name IS DISTINCT FROM ? " +
             "                     THEN " + NOW_IST + " ELSE assigned_at END, " +
             "  business_name = ?, owner_phone = ?, " +
             "  google_review_url = ?, instagram_url = ?, facebook_url = ?, youtube_url = ?, whatsapp_url = ?, " +
-            "  join_form = ? WHERE id = ?";
+            "  join_form = ?, link_order = ?, wifi_name = ?, wifi_password = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, businessName);
@@ -129,7 +129,10 @@ public class ReviewScannerDAO {
             ps.setString(3, ownerPhone);
             bindLinks(ps, 4, links);
             ps.setBoolean(9, joinForm);
-            ps.setLong(10, id);
+            ps.setString(10, linkOrder);
+            ps.setString(11, wifiName);
+            ps.setString(12, wifiPassword);
+            ps.setLong(13, id);
             ps.executeUpdate();
         }
     }
@@ -150,6 +153,32 @@ public class ReviewScannerDAO {
         }
     }
 
+    /** The owner changing the button order on their own sticker's scan page. */
+    public boolean updateLinkOrderForOwner(long id, long ownerId, String linkOrder) throws SQLException {
+        String sql = "UPDATE review_scanners SET link_order = ? WHERE id = ? AND owner_id = ? AND business_name IS NOT NULL";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, linkOrder);
+            ps.setLong(2, id);
+            ps.setLong(3, ownerId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    /** The owner changing the guest WiFi on their own sticker. Returns false if nothing was updated. */
+    public boolean updateWifiForOwner(long id, long ownerId, String wifiName, String wifiPassword) throws SQLException {
+        String sql = "UPDATE review_scanners SET wifi_name = ?, wifi_password = ? " +
+                     "WHERE id = ? AND owner_id = ? AND business_name IS NOT NULL";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, wifiName);
+            ps.setString(2, wifiPassword);
+            ps.setLong(3, id);
+            ps.setLong(4, ownerId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
     /** Links a scanner to an owner login (null = no login). */
     public void setOwner(long id, Long ownerId) throws SQLException {
         String sql = "UPDATE review_scanners SET owner_id = ? WHERE id = ?";
@@ -162,14 +191,48 @@ public class ReviewScannerDAO {
     }
 
     /** Frees a scanner so the sticker can be given to another business. */
+    /** Super admin: which reward features this sticker's owner may use, and the shop location for the near-the-shop check. */
+    public void updateFeatures(long id, boolean stamp, boolean scratch, boolean geo, Double lat, Double lng) throws SQLException {
+        String sql = "UPDATE review_scanners SET stamp_allowed = ?, scratch_allowed = ?, geo_check = ?, shop_lat = ?, shop_lng = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, stamp);
+            ps.setBoolean(2, scratch);
+            ps.setBoolean(3, geo);
+            if (lat == null) ps.setNull(4, Types.DOUBLE); else ps.setDouble(4, lat);
+            if (lng == null) ps.setNull(5, Types.DOUBLE); else ps.setDouble(5, lng);
+            ps.setLong(6, id);
+            ps.executeUpdate();
+        }
+    }
+
     public void unassign(long id) throws SQLException {
         String sql = "UPDATE review_scanners SET business_name = NULL, owner_phone = NULL, " +
                      "google_review_url = NULL, instagram_url = NULL, facebook_url = NULL, youtube_url = NULL, whatsapp_url = NULL, " +
-                     "owner_id = NULL, assigned_at = NULL, is_active = 1, join_form = TRUE WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            ps.executeUpdate();
+                     "owner_id = NULL, assigned_at = NULL, is_active = 1, join_form = TRUE, " +
+                     "stamp_allowed = FALSE, scratch_allowed = FALSE, geo_check = FALSE, shop_lat = NULL, shop_lng = NULL, " +
+                     "link_order = NULL, wifi_name = NULL, wifi_password = NULL WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 PreparedStatement p2 = conn.prepareStatement("DELETE FROM review_stamp_programs WHERE scanner_id = ?");
+                 PreparedStatement p3 = conn.prepareStatement(
+                     "UPDATE review_scratch_campaigns SET active = FALSE, ended_at = " + NOW_IST + " WHERE scanner_id = ? AND active")) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+                // Reward settings belong to the old business; its stamps and scratches stay in the
+                // tables but every query only reads rows created after assigned_at.
+                p2.setLong(1, id);
+                p2.executeUpdate();
+                p3.setLong(1, id);
+                p3.executeUpdate();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
     }
 
@@ -205,6 +268,19 @@ public class ReviewScannerDAO {
     }
 
     /** Records a trip to one app. Every tap counts — clicks are not de-duplicated (scans still are). */
+    /** A tap on the scan page's WiFi button (shown as "WiFi" in the owner's analytics). */
+    public void recordWifiTap(long scannerId, String visitorHash) {
+        String sql = "INSERT INTO review_clicks (scanner_id, platform, visitor_hash) VALUES (?, 'WIFI', ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, scannerId);
+            ps.setString(2, visitorHash);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            // Non-critical, same as recordClick
+        }
+    }
+
     public void recordClick(long scannerId, ReviewPlatform platform, String visitorHash) {
         String sql = "INSERT INTO review_clicks (scanner_id, platform, visitor_hash) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -294,7 +370,7 @@ public class ReviewScannerDAO {
         int[] daily  = new int[month.lengthOfMonth()];
         int[] dow    = new int[7];
         int[] blocks = new int[12];
-        int total = 0, previous = 0;
+        int total = 0, previous = 0, wifiTaps = 0;
         Map<ReviewPlatform, Integer> clicks = new EnumMap<>(ReviewPlatform.class);
 
         String scanSql =
@@ -332,6 +408,7 @@ public class ReviewScannerDAO {
                 bindRange(ps, scanner.getId(), since, from, to);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
+                        if ("WIFI".equals(rs.getString("platform"))) { wifiTaps = rs.getInt("cnt"); continue; }
                         ReviewPlatform p = platformOrNull(rs.getString("platform"));
                         if (p != null) clicks.put(p, rs.getInt("cnt"));
                     }
@@ -340,7 +417,9 @@ public class ReviewScannerDAO {
         }
 
         String monthShort = month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-        return new ReviewAnalytics(total, previous, daily, dow, blocks, clicks, scanner, monthShort);
+        ReviewAnalytics a = new ReviewAnalytics(total, previous, daily, dow, blocks, clicks, scanner, monthShort);
+        a.setWifiTaps(wifiTaps);
+        return a;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -407,12 +486,22 @@ public class ReviewScannerDAO {
         s.setFacebookUrl(rs.getString("facebook_url"));
         s.setYoutubeUrl(rs.getString("youtube_url"));
         s.setWhatsappUrl(rs.getString("whatsapp_url"));
+        s.setLinkOrder(rs.getString("link_order"));
+        s.setWifiName(rs.getString("wifi_name"));
+        s.setWifiPassword(rs.getString("wifi_password"));
         long ownerId = rs.getLong("owner_id");
         s.setOwnerId(rs.wasNull() ? null : ownerId);
         s.setLoginPhone(rs.getString("login_phone"));
         s.setOwnerName(rs.getString("owner_name"));
         s.setActive(rs.getInt("is_active") == 1);
         s.setJoinForm(rs.getBoolean("join_form"));
+        s.setStampAllowed(rs.getBoolean("stamp_allowed"));
+        s.setScratchAllowed(rs.getBoolean("scratch_allowed"));
+        s.setGeoCheck(rs.getBoolean("geo_check"));
+        double lat = rs.getDouble("shop_lat");
+        s.setShopLat(rs.wasNull() ? null : lat);
+        double lng = rs.getDouble("shop_lng");
+        s.setShopLng(rs.wasNull() ? null : lng);
         s.setAssignedAt(rs.getTimestamp("assigned_at"));
         s.setCreatedAt(rs.getTimestamp("created_at"));
         return s;

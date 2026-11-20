@@ -112,6 +112,12 @@
             .rtable th.col-phone, .rtable td.col-phone { display: none; }
             .rtable th.col-url,   .rtable td.col-url   { display: none; }
         }
+        .link-row > label { display: flex; align-items: center; gap: 0.3rem; }
+        .link-pos { font-weight: 700; color: var(--primary, #6c5ce7); }
+        .link-move { margin-left: auto; display: inline-flex; gap: 0.25rem; }
+        .link-move button { width: 28px; height: 24px; border: 1px solid #ccc; border-radius: 6px; background: #fff;
+                            cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0; }
+        .link-move button:disabled { opacity: 0.3; cursor: default; }
     </style>
 </head>
 <body>
@@ -232,6 +238,11 @@
                             data-owner-name="<c:out value="${empty s.ownerName ? '' : s.ownerName}"/>"
                             data-login="<c:out value="${empty s.loginPhone ? '' : s.loginPhone}"/>"
                             data-join="${s.assigned ? s.joinForm : true}"
+                            data-order="${s.linkOrderKeys}"
+                            data-wifi-name="<c:out value="${empty s.wifiName ? '' : s.wifiName}"/>"
+                            data-wifi-pass="<c:out value="${empty s.wifiPassword ? '' : s.wifiPassword}"/>"
+                            data-stamp="${s.stampAllowed}" data-scratch="${s.scratchAllowed}" data-geo="${s.geoCheck}"
+                            data-loc="${empty s.shopLat ? '' : s.shopLat}${empty s.shopLat ? '' : ', '}${empty s.shopLng ? '' : s.shopLng}"
                             data-scan-url="<c:out value="${scanUrls[s.id]}"/>">
                             <td class="col-check"><input type="checkbox" class="row-check" value="${s.id}" onchange="updateSelection()"></td>
                             <td>
@@ -256,11 +267,12 @@
                             <td class="col-phone"><c:out value="${empty s.ownerPhone ? '—' : s.ownerPhone}"/></td>
                             <td class="col-url url-cell">
                                 <c:choose>
-                                    <c:when test="${s.linkCount > 0}">
+                                    <c:when test="${s.linkCount > 0 or s.hasWifi}">
                                         <c:forEach var="e" items="${s.links}">
                                             <a class="link-chip" href="<c:out value="${e.value}"/>" target="_blank" rel="noopener noreferrer"><c:out value="${e.key.label}"/></a>
                                         </c:forEach>
-                                        <div style="font-size:0.68rem" class="muted">${s.linkCount == 1 and not s.joinForm ? 'Direct redirect' : 'Choice page'}${s.joinForm ? ' + join form' : ''}</div>
+                                        <c:if test="${s.hasWifi}"><span class="link-chip" title="<c:out value="${s.wifiName}"/>">&#128246; WiFi</span></c:if>
+                                        <div style="font-size:0.68rem" class="muted">${s.linkCount == 1 and not s.joinForm and not s.hasWifi ? 'Direct redirect' : 'Choice page'}${s.joinForm ? ' + join form' : ''}</div>
                                     </c:when>
                                     <c:otherwise><span class="muted">${s.assigned and s.joinForm ? "VIP Club form only (owner adds links)" : "—"}</span></c:otherwise>
                                 </c:choose>
@@ -281,6 +293,8 @@
                                     </button>
                                     <button type="button" class="btn btn-xs btn-outline" onclick="openQrModal(this.closest('tr'))">QR</button>
                                     <c:if test="${s.assigned}">
+                                        <button type="button" class="btn btn-xs btn-outline" onclick="openFeaturesModal(this.closest('tr'))"
+                                                title="Stamp card / scratch card for this client">&#127873; Features<c:if test="${s.rewardsAllowed}"> &#10003;</c:if></button>
                                         <a class="btn btn-xs btn-outline" href="${pageContext.request.contextPath}/admin/review-view?scanner=${s.id}"
                                            title="Open this client's dashboard (read-only)">&#128065; Dashboard</a>
                                         <button type="button" class="btn btn-xs btn-outline" onclick="openReportModal(this.closest('tr'))">&#128202; Report</button>
@@ -329,7 +343,7 @@
     <div class="modal-x" onclick="event.stopPropagation()">
         <button class="modal-close-btn" onclick="closeModal(null, 'assignModal')">&#10005;</button>
         <h3>Assign scanner <span id="assignSticker"></span></h3>
-        <form method="post" action="${pageContext.request.contextPath}/admin/review-scanners">
+        <form method="post" action="${pageContext.request.contextPath}/admin/review-scanners" onsubmit="saveLinkOrder()">
             <input type="hidden" name="action" value="assign">
             <input type="hidden" name="id" id="assignId">
             <div class="form-group">
@@ -343,32 +357,48 @@
 
             <div class="section-title">Links</div>
             <div class="field-hint" style="margin:-0.3rem 0 0.8rem">Fill at least one. One link (and no join form) = the QR opens it directly. Otherwise customers get a page to choose.</div>
-            <div class="form-group">
-                <label>Google review link</label>
+            <div class="field-hint" style="margin:-0.5rem 0 0.8rem">Use &uarr; &darr; to set the order on the scan page: the top one shows first.</div>
+            <input type="hidden" name="linkOrder" id="assignLinkOrder">
+            <div id="assignLinks">
+            <div class="form-group link-row" data-key="vip">
+                <label><span class="link-pos"></span>VIP Club box <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
+                <label class="checkbox-label" style="margin:0">
+                    <input type="checkbox" name="joinForm" id="assignJoin" value="1">
+                    Show the &ldquo;Join our VIP Club&rdquo; form (customers leave name, age, gender &amp; mobile for WhatsApp offers). With this on, the scan page is always shown, even with one link. When rewards are on, the rewards box takes this place.
+                </label>
+            </div>
+            <div class="form-group link-row" data-key="google">
+                <label><span class="link-pos"></span>Google review link <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
                 <input type="url" name="google" id="assign-google" maxlength="500" placeholder="https://g.page/r/.../review">
                 <div class="field-hint">Google Business Profile &rarr; <b>Ask for reviews</b> &rarr; copy the link. It opens the "write a review" box directly.</div>
             </div>
-            <div class="form-group">
-                <label>Instagram</label>
+            <div class="form-group link-row" data-key="instagram">
+                <label><span class="link-pos"></span>Instagram <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
                 <input type="text" name="instagram" id="assign-instagram" maxlength="500" placeholder="@handle or instagram.com/handle">
             </div>
-            <div class="form-group">
-                <label>Facebook</label>
+            <div class="form-group link-row" data-key="facebook">
+                <label><span class="link-pos"></span>Facebook <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
                 <input type="text" name="facebook" id="assign-facebook" maxlength="500" placeholder="facebook.com/page">
             </div>
-            <div class="form-group">
-                <label>WhatsApp Channel</label>
+            <div class="form-group link-row" data-key="whatsapp">
+                <label><span class="link-pos"></span>WhatsApp Channel <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
                 <input type="text" name="whatsapp" id="assign-whatsapp" maxlength="500" placeholder="whatsapp.com/channel/...">
             </div>
-            <div class="form-group">
-                <label>YouTube</label>
+            <div class="form-group link-row" data-key="youtube">
+                <label><span class="link-pos"></span>YouTube <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
                 <input type="text" name="youtube" id="assign-youtube" maxlength="500" placeholder="youtube.com/@channel">
             </div>
+            <div class="form-group link-row" data-key="wifi">
+                <label><span class="link-pos"></span>Free WiFi <span class="link-move"><button type="button" onclick="moveLink(this,-1)" title="Move up">&uarr;</button><button type="button" onclick="moveLink(this,1)" title="Move down">&darr;</button></span></label>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                    <input type="text" name="wifiName" id="assignWifiName" maxlength="32" placeholder="WiFi name, e.g. Ribat_Guest" style="flex:1;min-width:140px">
+                    <input type="text" name="wifiPassword" id="assignWifiPass" maxlength="63" placeholder="Password (empty = open WiFi)" autocomplete="off" style="flex:1;min-width:140px">
+                </div>
+                <div class="field-hint">Customers see the name and password with a Copy button. Use the <b>guest</b> WiFi only. The owner can change it from their dashboard.</div>
+            </div>
+            </div>
 
-            <label class="checkbox-label" style="margin:0.2rem 0 1rem">
-                <input type="checkbox" name="joinForm" id="assignJoin" value="1">
-                Show the &ldquo;Join our VIP Club&rdquo; form at the top (customers leave name, age, gender &amp; mobile for WhatsApp offers). With this on, the scan page is always shown, even with one link.
-            </label>
+
 
             <div class="section-title">Owner login</div>
             <div class="form-group">
@@ -385,6 +415,41 @@
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="button" class="btn btn-outline" onclick="testUrl()">Test Google link</button>
                 <button type="button" class="btn btn-outline" onclick="closeModal(null, 'assignModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%-- Features modal: reward features are off for every client until switched on here --%>
+<div class="modal-backdrop-x" id="featuresModal" onclick="closeModal(event, 'featuresModal')">
+    <div class="modal-x" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closeModal(null, 'featuresModal')">&#10005;</button>
+        <h3>Features for <span id="featSticker"></span></h3>
+        <form method="post" action="${pageContext.request.contextPath}/admin/review-scanners">
+            <input type="hidden" name="action" value="features">
+            <input type="hidden" name="id" id="featId">
+            <div class="field-hint" style="margin:0 0 0.8rem">The client sets these up in their dashboard's &ldquo;Rewards&rdquo; tab. Customers verify their number on WhatsApp first<c:if test="${not waReady}"> (<b>WhatsApp verification is not set up yet, so customers won't see rewards</b>)</c:if>.</div>
+            <label class="checkbox-label" style="margin:0 0 0.8rem">
+                <input type="checkbox" name="stampAllowed" id="featStamp" value="1">
+                &#11088; Digital stamp card: one stamp a day, reward when the card is full
+            </label>
+            <label class="checkbox-label" style="margin:0 0 0.8rem">
+                <input type="checkbox" name="scratchAllowed" id="featScratch" value="1">
+                &#127873; Scratch card: money off from a budget, or random offers
+            </label>
+            <div class="section-title">Cheating check (optional)</div>
+            <label class="checkbox-label" style="margin:0 0 0.6rem">
+                <input type="checkbox" name="geoCheck" id="featGeo" value="1">
+                Only give rewards near the shop (about 150 m). Customers must allow location.
+            </label>
+            <div class="form-group">
+                <label>Shop location</label>
+                <input type="text" name="shopLocation" id="featLoc" maxlength="60" placeholder="19.137970, 72.845594">
+                <div class="field-hint">Google Maps &rarr; right-click (or long-press) the shop &rarr; tap the numbers to copy them.</div>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem;flex-wrap:wrap">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal(null, 'featuresModal')">Cancel</button>
             </div>
         </form>
     </div>
@@ -435,6 +500,14 @@ function openAssignModal(row) {
     ['google', 'instagram', 'facebook', 'whatsapp', 'youtube'].forEach(function (k) {
         document.getElementById('assign-' + k).value = row.dataset[k] || '';
     });
+    var box = document.getElementById('assignLinks');
+    (row.dataset.order || 'vip,google,instagram,facebook,whatsapp,youtube,wifi').split(',').forEach(function (k) {
+        var el = box.querySelector('.link-row[data-key="' + k + '"]');
+        if (el) box.appendChild(el);                 // appending in order = sorting
+    });
+    numberLinks();
+    document.getElementById('assignWifiName').value = row.dataset.wifiName || '';
+    document.getElementById('assignWifiPass').value = row.dataset.wifiPass || '';
     document.getElementById('assignOwnerName').value = row.dataset.ownerName || '';
     document.getElementById('assignJoin').checked = row.dataset.join === 'true';
     var pw = document.getElementById('assignPassword');
@@ -443,6 +516,36 @@ function openAssignModal(row) {
         ? 'leave empty to keep the current password'
         : 'min 6 characters (leave empty for no login)';
     openModal('assignModal');
+}
+
+/* Link order on the scan page: rows are moved in the DOM, the order is sent as "google,instagram,..." */
+function moveLink(btn, dir) {
+    var row = btn.closest('.link-row'), box = row.parentNode;
+    if (dir < 0 && row.previousElementSibling) box.insertBefore(row, row.previousElementSibling);
+    if (dir > 0 && row.nextElementSibling) box.insertBefore(row.nextElementSibling, row);
+    numberLinks();
+}
+function numberLinks() {
+    document.querySelectorAll('#assignLinks .link-row').forEach(function (r, i, all) {
+        r.querySelector('.link-pos').textContent = (i + 1) + '. ';
+        var b = r.querySelectorAll('.link-move button');
+        b[0].disabled = i === 0;
+        b[1].disabled = i === all.length - 1;
+    });
+}
+function saveLinkOrder() {
+    document.getElementById('assignLinkOrder').value = Array.prototype.map.call(
+        document.querySelectorAll('#assignLinks .link-row'), function (r) { return r.dataset.key; }).join(',');
+}
+
+function openFeaturesModal(row) {
+    document.getElementById('featId').value = row.dataset.id;
+    document.getElementById('featSticker').textContent = row.dataset.sticker;
+    document.getElementById('featStamp').checked = row.dataset.stamp === 'true';
+    document.getElementById('featScratch').checked = row.dataset.scratch === 'true';
+    document.getElementById('featGeo').checked = row.dataset.geo === 'true';
+    document.getElementById('featLoc').value = row.dataset.loc || '';
+    openModal('featuresModal');
 }
 
 function testUrl() {

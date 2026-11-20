@@ -5,6 +5,7 @@ import com.menuscanner.review.ReviewReportText;
 import com.menuscanner.review.dao.ReviewBroadcastDAO;
 import com.menuscanner.review.dao.ReviewContactDAO;
 import com.menuscanner.review.dao.ReviewOwnerDAO;
+import com.menuscanner.review.dao.ReviewRewardsDAO;
 import com.menuscanner.review.dao.ReviewScannerDAO;
 import com.menuscanner.review.filter.ReviewOwnerAuthFilter;
 import com.menuscanner.review.model.ReviewAnalytics;
@@ -13,6 +14,8 @@ import com.menuscanner.review.model.ReviewContact;
 import com.menuscanner.review.model.ReviewOwner;
 import com.menuscanner.review.model.ReviewPlatform;
 import com.menuscanner.review.model.ReviewScanner;
+import com.menuscanner.review.model.ReviewScratchCampaign;
+import com.menuscanner.review.model.ReviewStampProgram;
 import com.menuscanner.util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -50,6 +53,7 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
     private final ReviewOwnerDAO     ownerDAO     = new ReviewOwnerDAO();
     private final ReviewContactDAO   contactDAO   = new ReviewContactDAO();
     private final ReviewBroadcastDAO broadcastDAO = new ReviewBroadcastDAO();
+    private final ReviewRewardsDAO   rewardsDAO   = new ReviewRewardsDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -76,7 +80,7 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
                           List<ReviewScanner> scanners, String firstName)
             throws ServletException, IOException {
         String tabParam = req.getParameter("tab");
-        String tab = "links".equals(tabParam) || "customers".equals(tabParam) ? tabParam : "analytics";
+        String tab = "links".equals(tabParam) || "customers".equals(tabParam) || "rewards".equals(tabParam) ? tabParam : "analytics";
         YearMonth month = parseMonth(req.getParameter("month"));
 
         try {
@@ -96,6 +100,30 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
                     }
                     req.setAttribute("contacts", contacts);
                     req.setAttribute("broadcasts", broadcastDAO.findRecent(current, HISTORY_LIMIT));
+                }
+
+                if ("rewards".equals(tab) && current.isRewardsAllowed()) {
+                    req.setAttribute("waReady", ReviewConfig.waVerifyReady());
+                    if (current.isStampAllowed()) {
+                        ReviewStampProgram program = rewardsDAO.findProgram(current.getId());
+                        req.setAttribute("program", program);
+                        if (program != null) req.setAttribute("cards", rewardsDAO.openCards(current, program.getStampsNeeded()));
+                        int[] st = rewardsDAO.stampStats(current);
+                        req.setAttribute("stampsToday", st[0]);
+                        req.setAttribute("rewardsGiven", st[1]);
+                    }
+                    if (current.isScratchAllowed()) {
+                        ReviewScratchCampaign campaign = rewardsDAO.activeCampaign(current.getId());
+                        req.setAttribute("campaign", campaign);
+                        if (campaign != null) {
+                            req.setAttribute("plays", rewardsDAO.recentPlays(current.getId(), campaign.getId(), 100));
+                            int[] st = rewardsDAO.scratchStatsToday(current.getId(), campaign.getId());
+                            req.setAttribute("scratchesToday", st[0]);
+                            req.setAttribute("winsToday", st[1]);
+                        }
+                    }
+                } else if ("rewards".equals(tab)) {
+                    tab = "analytics";
                 }
 
                 if ("analytics".equals(tab)) {
@@ -208,13 +236,31 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
                         return;
                     }
                 }
+                String wifiName = trimWifi(req.getParameter("wifiName"));
+                String wifiPass = trimWifi(req.getParameter("wifiPassword"));
+                String wifiError = ReviewAdminServlet.wifiError(wifiName, wifiPass);
+                if (wifiError != null) {
+                    resp.sendRedirect(back + "&error=" + encode(wifiError));
+                    return;
+                }
+                if (wifiName == null) wifiPass = null;
                 ReviewScanner target = scannerDAO.findById(id);
-                if (links.isEmpty() && (target == null || !target.isJoinForm())) {
+                if (links.isEmpty() && wifiName == null && (target == null || !target.isJoinForm())) {
                     resp.sendRedirect(back + "&error=" + encode("Keep at least one link, otherwise the QR has nowhere to go."));
                     return;
                 }
-                boolean ok = scannerDAO.updateLinksForOwner(id, ownerId, links);
+                boolean ok = scannerDAO.updateLinksForOwner(id, ownerId, links)
+                          && scannerDAO.updateWifiForOwner(id, ownerId, wifiName, wifiPass);
+                String order = req.getParameter("linkOrder");
+                if (ok && order != null && !order.isBlank()) {
+                    ok = scannerDAO.updateLinkOrderForOwner(id, ownerId, ReviewAdminServlet.parseLinkOrder(order));
+                }
                 resp.sendRedirect(back + (ok ? "&saved=1" : "&error=" + encode("That sticker isn't linked to your account.")));
+                return;
+            }
+
+            if (action != null && action.startsWith("rw")) {
+                rewardsAction(req, resp, ownerId, action, scanner);
                 return;
             }
 
@@ -243,6 +289,103 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
             resp.sendRedirect(back + "&error=" + encode("Could not save. Please try again."));
         }
     }
+
+    /**
+     * Rewards tab actions (all redirect back to the tab with a message):
+     * rwSaveStamp, rwRedeemStamp, rwStartScratch, rwStopScratch, rwRedeemCode.
+     */
+    private void rewardsAction(HttpServletRequest req, HttpServletResponse resp, long ownerId, String action, String scanner)
+            throws IOException, SQLException {
+        String back = req.getContextPath() + "/review/dashboard?tab=rewards"
+                    + (scanner != null && scanner.matches("\\d+") ? "&scanner=" + scanner : "");
+        ReviewScanner target = pick(scannerDAO.findByOwner(ownerId), scanner);
+        if (target == null || !String.valueOf(target.getId()).equals(scanner) || !target.isRewardsAllowed()) {
+            resp.sendRedirect(back + "&rwError=" + encode("That sticker isn't linked to your account."));
+            return;
+        }
+        long id = target.getId();
+        switch (action) {
+            case "rwSaveStamp" -> {
+                if (!target.isStampAllowed()) { resp.sendRedirect(back + "&rwError=" + encode("Stamp card is not switched on for this sticker.")); return; }
+                int needed = parseInt(req.getParameter("stampsNeeded"), -1);
+                String reward = trim(req.getParameter("reward")).replaceAll("\\s+", " ");
+                if (needed < 2 || needed > 50) { resp.sendRedirect(back + "&rwError=" + encode("Stamps needed must be between 2 and 50.")); return; }
+                if (reward.length() < 2 || reward.length() > 150) { resp.sendRedirect(back + "&rwError=" + encode("Please write the reward, e.g. Free haircut.")); return; }
+                rewardsDAO.saveProgram(id, needed, reward, req.getParameter("active") != null);
+                resp.sendRedirect(back + "&rwOk=" + encode("Stamp card saved."));
+            }
+            case "rwRedeemStamp" -> {
+                ReviewStampProgram p = rewardsDAO.findProgram(id);
+                String phone = String.valueOf(req.getParameter("phone"));
+                boolean ok = p != null && phone.matches("\\d{10}") && rewardsDAO.redeemStamps(target, phone, p.getStampsNeeded());
+                resp.sendRedirect(back + (ok ? "&rwOk=" + encode("Reward given to +91 " + phone + ". Their card starts again from 0.")
+                                             : "&rwError=" + encode("That card isn't full yet.")));
+            }
+            case "rwStartScratch" -> {
+                if (!target.isScratchAllowed()) { resp.sendRedirect(back + "&rwError=" + encode("Scratch card is not switched on for this sticker.")); return; }
+                String mode = ReviewScratchCampaign.OFFER.equals(req.getParameter("mode")) ? ReviewScratchCampaign.OFFER : ReviewScratchCampaign.AMOUNT;
+                String winRaw = trim(req.getParameter("winPercent"));
+                int win = winRaw.isEmpty() ? ReviewScratchCampaign.DEFAULT_WIN_PERCENT : parseInt(winRaw, -1);
+                if (win < 1 || win > 100) { resp.sendRedirect(back + "&rwError=" + encode("Winning chance must be between 1 and 100%.")); return; }
+                List<ReviewScratchCampaign.Slab> slabs = new ArrayList<>();
+                List<String> offers = new ArrayList<>();
+                if (ReviewScratchCampaign.AMOUNT.equals(mode)) {
+                    String[] amounts = req.getParameterValues("slabAmount"), counts = req.getParameterValues("slabCount"), mins = req.getParameterValues("slabMin");
+                    for (int i = 0; amounts != null && i < amounts.length; i++) {
+                        if (trim(amounts[i]).isEmpty()) continue;
+                        int a = parseInt(amounts[i], -1);
+                        int n = counts != null && i < counts.length ? parseInt(counts[i], -1) : -1;
+                        int min = mins != null && i < mins.length && !trim(mins[i]).isEmpty() ? parseInt(mins[i], -1) : 0;
+                        if (a < 1 || a > 100_000 || n < 1 || n > 10_000 || min < 0 || min > 1_000_000) {
+                            resp.sendRedirect(back + "&rwError=" + encode("Check slab " + (i + 1) + ": amount, how many times and minimum bill."));
+                            return;
+                        }
+                        slabs.add(new ReviewScratchCampaign.Slab(a, min, n));
+                    }
+                    if (slabs.isEmpty() || slabs.size() > 10) { resp.sendRedirect(back + "&rwError=" + encode("Add 1 to 10 prize slabs.")); return; }
+                } else {
+                    String[] raw = req.getParameterValues("offer");
+                    if (raw != null) for (String o : raw) {
+                        String t = trim(o).replaceAll("\\s+", " ");
+                        if (t.isEmpty()) continue;
+                        if (t.length() > 200) { resp.sendRedirect(back + "&rwError=" + encode("Keep each offer under 200 characters.")); return; }
+                        offers.add(t);
+                    }
+                    if (offers.isEmpty() || offers.size() > 10) { resp.sendRedirect(back + "&rwError=" + encode("Add 1 to 10 offers.")); return; }
+                }
+                rewardsDAO.startCampaign(id, mode, win, slabs, offers);
+                resp.sendRedirect(back + "&rwOk=" + encode("Scratch card is live! Customers can play from now."));
+            }
+            case "rwStopScratch" -> {
+                rewardsDAO.stopCampaign(id);
+                resp.sendRedirect(back + "&rwOk=" + encode("Scratch card stopped."));
+            }
+            case "rwRedeemCode" -> {
+                String code = trim(req.getParameter("code")).toUpperCase().replaceAll("[^A-Z0-9]", "");
+                ReviewScratchCampaign.Play play = code.matches("[A-Z0-9]{6}") ? rewardsDAO.findPlayByCode(id, code) : null;
+                if (play == null) {
+                    resp.sendRedirect(back + "&rwError=" + encode("Code " + code + " not found. Check the letters with the customer."));
+                } else if (play.getRedeemedAt() != null || !rewardsDAO.redeemPlay(id, code)) {
+                    resp.sendRedirect(back + "&rwError=" + encode("Code " + code + " was already used."));
+                } else {
+                    String who = play.getName() == null ? "+91 " + play.getPhone() : play.getName();
+                    String bill = play.getBillAmount() == null ? "" : " (bill ₹" + play.getBillAmount() + ")";
+                    resp.sendRedirect(back + "&rwOk=" + encode("✅ " + code + ": give " + play.getPrizeText() + " to " + who + bill + "."));
+                }
+            }
+            default -> resp.sendRedirect(back);
+        }
+    }
+
+    private static int parseInt(String s, int fallback) {
+        try {
+            return Integer.parseInt(trim(s));
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    private static String trim(String s) { return s == null ? "" : s.trim(); }
 
     /** Excel-friendly CSV of the VIP Club list (UTF-8 with BOM so names in any script open correctly). */
     /** maskPhones: the super admin's copy shows only the first 6 digits (98765XXXX style). */
@@ -301,4 +444,9 @@ public class ReviewOwnerDashboardServlet extends HttpServlet {
     private static String encode(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
+
+    private static String trimWifi(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
 }

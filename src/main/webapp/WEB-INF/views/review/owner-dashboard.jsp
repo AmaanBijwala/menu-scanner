@@ -122,6 +122,17 @@
                             border-radius: var(--radius-lg); font-size: .9rem; color: var(--on-surface); font-family: inherit; }
         .link-field input::placeholder { color: var(--on-surface-muted); }
         .link-field input:focus { outline: none; border-color: rgba(245,124,0,.45); box-shadow: 0 0 0 3px rgba(245,124,0,.08); }
+        .ord-list { list-style: none; margin: 0 0 1.2rem; padding: 0; display: grid; gap: .4rem; }
+        .ord-list li { display: flex; align-items: center; gap: .6rem; padding: .5rem .6rem; border-radius: 12px;
+                       background: var(--surface-container-lowest); font-size: .86rem; font-weight: 600; }
+        .ord-list li.off { opacity: .5; }
+        .ord-list .n { width: 1.4rem; text-align: center; color: var(--on-surface-muted); }
+        .ord-list .pi, .ord-list .em { width: 22px; height: 22px; font-size: 1.05rem; line-height: 22px; text-align: center; }
+        .ord-list small { font-weight: 400; color: var(--on-surface-muted); }
+        .ord-move { margin-left: auto; display: inline-flex; gap: .3rem; }
+        .ord-move button { width: 32px; height: 30px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12);
+                           background: #fff; cursor: pointer; font-size: .9rem; }
+        .ord-move button:disabled { opacity: .3; cursor: default; }
         .link-field .fh { grid-column: 2; font-size: .72rem; color: var(--on-surface-muted); line-height: 1.45; }
         .state { font-size: .7rem; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; letter-spacing: .04em; }
         .state.live { background: rgba(34,197,94,.15); color: #22c55e; }
@@ -139,6 +150,28 @@
         /* VIP Club list */
         .kpis.vip-kpis { grid-template-columns: 1fr; }
         .tbl-wrap { overflow-x: auto; margin-top: .5rem; }
+        /* Rewards tab */
+        .rw-inline { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .rw-inline input { flex: 1; min-width: 150px; padding: .65rem .8rem; border-radius: .6rem; border: 1px solid var(--line); background: var(--surface-container); color: var(--on-surface); font: inherit; font-size: 1rem; }
+        .rw-grid { display: grid; grid-template-columns: 160px 1fr; gap: 0 .75rem; align-items: end; }
+        .rw-grid .form-group { margin-bottom: .75rem; }
+        .rw-grid .rw-check, .rw-grid button { grid-column: 1 / -1; justify-self: start; }
+        .rw-check { display: flex; align-items: center; gap: .5rem; font-size: .86rem; margin-bottom: .75rem; cursor: pointer; }
+        .rw-check input { width: 18px; height: 18px; accent-color: #22c55e; }
+        .rw-new { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+        .rw-new summary { cursor: pointer; font-weight: 700; font-size: .92rem; }
+        .rw-modes { display: flex; gap: .5rem; margin: .8rem 0 .4rem; }
+        .rw-modes label { flex: 1; }
+        .rw-modes input { position: absolute; opacity: 0; }
+        .rw-modes span { display: block; text-align: center; padding: .65rem; border-radius: .7rem; border: 1px solid var(--line); cursor: pointer; font-weight: 600; font-size: .88rem; }
+        .rw-modes input:checked + span { border-color: #7b4bff; background: rgba(123,75,255,.1); color: #7b4bff; }
+        .rw-slab { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .5rem; }
+        .rw-slab label { font-size: .72rem; font-weight: 600; color: var(--on-surface-muted); }
+        .rw-slab input, #offerRows textarea { display: block; width: 100%; margin-top: .2rem; padding: .55rem .65rem; border-radius: .55rem; border: 1px solid var(--line); background: var(--surface-container); color: var(--on-surface); font: inherit; font-size: .95rem; }
+        #offerRows textarea { margin: 0 0 .5rem; resize: vertical; }
+        .rw-offers { margin: .4rem 0; padding-left: 1.1rem; font-size: .9rem; }
+        .rw-offers li { margin-bottom: .25rem; }
+        @media (max-width: 520px) { .rw-grid { grid-template-columns: 1fr; } }
         table.contacts { width: 100%; border-collapse: collapse; font-size: .86rem; }
         table.contacts th { text-align: left; font-size: .72rem; font-weight: 600; color: var(--on-surface-muted); padding: .5rem .6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
         table.contacts td { padding: .65rem .6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -252,6 +285,9 @@
     <nav class="tabs">
         <a href="${dash}?tab=analytics&${selfQs}" class="${tab eq 'analytics' ? 'on' : ''}">&#128202; Analytics</a>
         <a href="${dash}?tab=customers&${selfQs}" class="${tab eq 'customers' ? 'on' : ''}">&#128081; VIP Club</a>
+        <c:if test="${current.rewardsAllowed}">
+            <a href="${dash}?tab=rewards&${selfQs}" class="${tab eq 'rewards' ? 'on' : ''}">&#127873; Rewards</a>
+        </c:if>
         <a href="${dash}?tab=links&${selfQs}" class="${tab eq 'links' ? 'on' : ''}">&#128279; Links &amp; settings</a>
     </nav>
 
@@ -489,6 +525,9 @@
                     </div>
                 </c:forEach>
             </div>
+            <c:if test="${current.hasWifi or a.wifiTaps > 0}">
+                <p class="hint" style="margin:.8rem 0 0">&#128246; WiFi details opened <b style="color:var(--on-surface)">${a.wifiTaps}</b> time${a.wifiTaps == 1 ? '' : 's'} this month.</p>
+            </c:if>
         </div>
 
         <div class="two">
@@ -536,6 +575,206 @@
         </div>
     </c:if>
 
+    <%-- ═══════════════════════ REWARDS ═══════════════════════ --%>
+    <c:if test="${tab eq 'rewards'}">
+        <c:if test="${not empty param.rwOk}"><div class="alert alert-success"><c:out value="${param.rwOk}"/></div></c:if>
+        <c:if test="${not empty param.rwError}"><div class="alert alert-error"><c:out value="${param.rwError}"/></div></c:if>
+        <c:if test="${not waReady}">
+            <div class="alert alert-error">Rewards will show to customers once WhatsApp verification is switched on by Bijwala Solutions. You can set them up now.</div>
+        </c:if>
+
+        <c:if test="${current.scratchAllowed and not adminView}">
+            <div class="panel">
+                <h2>&#127915; Claim a scratch code</h2>
+                <p class="hint">Customer shows a code at the counter? Type it here. It works only once.</p>
+                <form method="post" action="${ctx}/review/dashboard" class="rw-inline">
+                    <input type="hidden" name="action" value="rwRedeemCode">
+                    <input type="hidden" name="scanner" value="${current.id}">
+                    <input type="text" name="code" maxlength="8" required placeholder="e.g. K7P2QX" autocomplete="off" style="text-transform:uppercase;letter-spacing:.12em;font-weight:700">
+                    <button type="submit" class="btn btn-primary">Check &amp; claim</button>
+                </form>
+            </div>
+        </c:if>
+
+        <%-- ── Stamp card ── --%>
+        <c:if test="${current.stampAllowed}">
+            <div class="panel" id="stampPanel">
+                <div class="row-between" style="margin-bottom:.35rem">
+                    <h2>&#11088; Stamp card</h2>
+                    <span class="state ${not empty program and program.active ? 'live' : 'paused'}">${not empty program and program.active ? 'LIVE' : 'OFF'}</span>
+                </div>
+                <p class="hint">Customers get one stamp a day when they scan. When the card is full, they show it at the counter and you tap <b style="color:var(--on-surface)">Give reward</b>.</p>
+                <div class="kpis">
+                    <div class="kpi"><div class="lbl">Stamps today</div><div class="num">${stampsToday}</div></div>
+                    <div class="kpi"><div class="lbl">Customers collecting</div><div class="num">${fn:length(cards)}</div></div>
+                    <div class="kpi"><div class="lbl">Rewards given</div><div class="num">${rewardsGiven}</div></div>
+                </div>
+                <c:if test="${not adminView}">
+                    <form method="post" action="${ctx}/review/dashboard" class="rw-grid">
+                        <input type="hidden" name="action" value="rwSaveStamp">
+                        <input type="hidden" name="scanner" value="${current.id}">
+                        <div class="form-group"><label for="rwNeeded">Stamps to collect</label>
+                            <input type="number" id="rwNeeded" name="stampsNeeded" min="2" max="50" required value="${empty program ? 10 : program.stampsNeeded}"></div>
+                        <div class="form-group"><label for="rwReward">Reward</label>
+                            <input type="text" id="rwReward" name="reward" maxlength="150" required placeholder="e.g. Free haircut" value="<c:out value='${program.reward}'/>"></div>
+                        <label class="rw-check"><input type="checkbox" name="active" ${empty program or program.active ? 'checked' : ''}> Show the stamp card to customers</label>
+                        <button type="submit" class="btn btn-primary">Save stamp card</button>
+                    </form>
+                </c:if>
+                <c:if test="${adminView and not empty program}">
+                    <p class="hint"><b style="color:var(--on-surface)">${program.stampsNeeded} stamps</b> = <c:out value="${program.reward}"/></p>
+                </c:if>
+
+                <c:if test="${not empty cards}">
+                    <div class="tbl-wrap">
+                        <table class="contacts">
+                            <thead><tr><th>Customer</th><th>WhatsApp</th><th>Stamps</th><th>Last stamp</th><th></th></tr></thead>
+                            <tbody>
+                            <c:forEach var="cd" items="${cards}">
+                                <tr>
+                                    <td><c:out value="${empty cd.name ? '—' : cd.name}"/></td>
+                                    <td>+91 ${adminView ? fn:substring(cd.phone, 0, 6).concat('XXXX') : cd.phone}</td>
+                                    <td title="<c:forEach var='d' items='${cd.dates}' varStatus='ds'><fmt:formatDate value='${d}' pattern='dd MMM'/>${ds.last ? '' : ', '}</c:forEach>">
+                                        <b>${cd.count}</b> / ${cd.needed}<c:if test="${cd.complete}"> &#127881;</c:if>
+                                    </td>
+                                    <td class="when"><fmt:formatDate value="${cd.dates[cd.count - 1]}" pattern="dd MMM"/></td>
+                                    <td>
+                                        <c:if test="${cd.complete and not adminView}">
+                                            <form method="post" action="${ctx}/review/dashboard" style="margin:0"
+                                                  onsubmit="return confirm('Give the reward to <c:out value="${empty cd.name ? cd.phone : cd.name}"/>? Their card starts again from 0.')">
+                                                <input type="hidden" name="action" value="rwRedeemStamp">
+                                                <input type="hidden" name="scanner" value="${current.id}">
+                                                <input type="hidden" name="phone" value="${cd.phone}">
+                                                <button type="submit" class="btn btn-wa" style="padding:.35rem .7rem;font-size:.78rem">Give reward</button>
+                                            </form>
+                                        </c:if>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="hint">Hover or long-press the stamp count to see the dates. Check them if something looks odd.</p>
+                </c:if>
+            </div>
+        </c:if>
+
+        <%-- ── Scratch card ── --%>
+        <c:if test="${current.scratchAllowed}">
+            <div class="panel" id="scratchPanel">
+                <div class="row-between" style="margin-bottom:.35rem">
+                    <h2>&#127873; Scratch card</h2>
+                    <span class="state ${not empty campaign ? 'live' : 'paused'}">${not empty campaign ? 'LIVE' : 'OFF'}</span>
+                </div>
+                <c:choose>
+                    <c:when test="${not empty campaign}">
+                        <div class="kpis">
+                            <c:choose>
+                                <c:when test="${campaign.amountMode}">
+                                    <div class="kpi"><div class="lbl">Budget left</div><div class="num">&#8377;${campaign.budgetLeft}</div><div class="delta">of &#8377;${campaign.budgetTotal}</div></div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="kpi"><div class="lbl">Offers</div><div class="num">${fn:length(campaign.offers)}</div><div class="delta">one shown at random</div></div>
+                                </c:otherwise>
+                            </c:choose>
+                            <div class="kpi"><div class="lbl">Scratches today</div><div class="num">${scratchesToday}</div></div>
+                            <div class="kpi"><div class="lbl">Wins today</div><div class="num">${winsToday}</div></div>
+                        </div>
+                        <c:if test="${campaign.usedUp}">
+                            <div class="alert alert-error">The budget is used up, so every customer now sees &ldquo;Better luck next time&rdquo;. Start a new scratch card below to give more prizes.</div>
+                        </c:if>
+                        <c:choose>
+                            <c:when test="${campaign.amountMode}">
+                                <div class="tbl-wrap">
+                                    <table class="contacts">
+                                        <thead><tr><th>Prize</th><th>Min bill</th><th>Left</th></tr></thead>
+                                        <tbody>
+                                        <c:forEach var="sl" items="${campaign.slabs}">
+                                            <tr><td><b>&#8377;${sl.amount} off</b></td><td><c:choose><c:when test="${sl.minBill == 0}">Any</c:when><c:otherwise>&#8377;${sl.minBill}</c:otherwise></c:choose></td><td>${sl.remaining} of ${sl.totalCount}</td></tr>
+                                        </c:forEach>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="hint">Winning chance: <b style="color:var(--on-surface)">${campaign.winPercent}%</b> per scratch. Started <fmt:formatDate value="${campaign.createdAt}" pattern="dd MMM, hh:mm a"/>.</p>
+                            </c:when>
+                            <c:otherwise>
+                                <ul class="rw-offers"><c:forEach var="o" items="${campaign.offers}"><li><c:out value="${o}"/></li></c:forEach></ul>
+                                <p class="hint">Every scratch shows one of these. Started <fmt:formatDate value="${campaign.createdAt}" pattern="dd MMM, hh:mm a"/>.</p>
+                            </c:otherwise>
+                        </c:choose>
+                        <c:if test="${not adminView}">
+                            <form method="post" action="${ctx}/review/dashboard" style="margin-top:.5rem"
+                                  onsubmit="return confirm('Stop the scratch card? Customers will not see it until you start a new one.')">
+                                <input type="hidden" name="action" value="rwStopScratch">
+                                <input type="hidden" name="scanner" value="${current.id}">
+                                <button type="submit" class="btn btn-outline">Stop scratch card</button>
+                            </form>
+                        </c:if>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="hint">No scratch card running. Start one below.</p>
+                    </c:otherwise>
+                </c:choose>
+
+                <c:if test="${not adminView}">
+                    <details class="rw-new" ${empty campaign or campaign.usedUp ? 'open' : ''}>
+                        <summary>${empty campaign ? 'Start a scratch card' : 'Start a new scratch card (replaces the current one)'}</summary>
+                        <form method="post" action="${ctx}/review/dashboard" id="scratchForm">
+                            <input type="hidden" name="action" value="rwStartScratch">
+                            <input type="hidden" name="scanner" value="${current.id}">
+                            <div class="rw-modes">
+                                <label><input type="radio" name="mode" value="AMOUNT" checked onchange="rwMode()"> <span>&#8377; Money off</span></label>
+                                <label><input type="radio" name="mode" value="OFFER" onchange="rwMode()"> <span>&#127991; Offers</span></label>
+                            </div>
+                            <div id="rwAmount">
+                                <p class="hint">Set your prizes. Customers type their bill amount, and only prizes whose minimum bill they reach can come up.</p>
+                                <div id="slabRows">
+                                    <div class="rw-slab">
+                                        <label>&#8377; off<input type="number" name="slabAmount" min="1" placeholder="10"></label>
+                                        <label>How many<input type="number" name="slabCount" min="1" placeholder="20"></label>
+                                        <label>Min bill &#8377;<input type="number" name="slabMin" min="0" placeholder="100"></label>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline" onclick="rwAddSlab()">&#10133; Add prize</button>
+                                <p class="hint" id="rwBudget"></p>
+                                <div class="form-group" style="max-width:220px;margin-top:.6rem"><label for="rwWin">Winning chance % (optional)</label>
+                                    <input type="number" id="rwWin" name="winPercent" min="1" max="100" placeholder="40"></div>
+                            </div>
+                            <div id="rwOffer" hidden>
+                                <p class="hint">Every scratch shows one of these, picked at random.</p>
+                                <div id="offerRows">
+                                    <textarea name="offer" maxlength="200" rows="2" placeholder="e.g. Free hair spa with any facial"></textarea>
+                                </div>
+                                <button type="button" class="btn btn-outline" onclick="rwAddOffer()">&#10133; Add offer</button>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top:1rem">Start scratch card</button>
+                        </form>
+                    </details>
+                </c:if>
+
+                <c:if test="${not empty plays}">
+                    <h2 style="margin-top:1.2rem">Latest scratches</h2>
+                    <div class="tbl-wrap">
+                        <table class="contacts">
+                            <thead><tr><th>When</th><th>Customer</th><c:if test="${campaign.amountMode}"><th>Bill</th></c:if><th>Result</th><th>Code</th></tr></thead>
+                            <tbody>
+                            <c:forEach var="pl" items="${plays}">
+                                <tr>
+                                    <td class="when"><fmt:formatDate value="${pl.createdAt}" pattern="dd MMM, hh:mm a"/></td>
+                                    <td><c:out value="${empty pl.name ? '—' : pl.name}"/><br><small style="color:var(--on-surface-muted)">+91 ${adminView ? fn:substring(pl.phone, 0, 6).concat('XXXX') : pl.phone}</small></td>
+                                    <c:if test="${campaign.amountMode}"><td><c:choose><c:when test="${empty pl.billAmount}">—</c:when><c:otherwise>&#8377;${pl.billAmount}</c:otherwise></c:choose></td></c:if>
+                                    <td><c:choose><c:when test="${pl.won}"><b><c:out value="${pl.prizeText}"/></b></c:when><c:otherwise><span style="color:var(--on-surface-muted)">No win</span></c:otherwise></c:choose></td>
+                                    <td><c:if test="${pl.won}"><code>${pl.code}</code> <span class="state ${empty pl.redeemedAt ? 'paused' : 'live'}">${empty pl.redeemedAt ? 'NOT CLAIMED' : 'CLAIMED'}</span></c:if></td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </c:if>
+            </div>
+        </c:if>
+    </c:if>
+
     <%-- ═══════════════════════ LINKS ═══════════════════════ --%>
     <c:if test="${tab eq 'links'}">
         <c:if test="${param.saved eq '1'}"><div class="alert alert-success">Links saved. Your QR uses them right away, no new sticker needed.</div></c:if>
@@ -552,8 +791,8 @@
                 <span style="font-size:1.3rem" aria-hidden="true">&#128073;</span>
                 <span>
                     <c:choose>
-                        <c:when test="${current.linkCount == 1 and not current.joinForm}">Customers go <b>straight to <c:forEach var="e" items="${current.links}"><c:out value="${e.key.label}"/></c:forEach></b> when they scan.</c:when>
-                        <c:when test="${current.linkCount == 0}">Customers see just the <b>&ldquo;Join our VIP Club&rdquo;</b> form. Add your links below to show those buttons too.</c:when>
+                        <c:when test="${current.linkCount == 1 and not current.joinForm and not current.hasWifi}">Customers go <b>straight to <c:forEach var="e" items="${current.links}"><c:out value="${e.key.label}"/></c:forEach></b> when they scan.</c:when>
+                        <c:when test="${current.linkCount == 0 and not current.hasWifi}">Customers see just the <b>&ldquo;Join our VIP Club&rdquo;</b> form. Add your links below to show those buttons too.</c:when>
                         <c:otherwise>Customers see a page with <b>${current.linkCount} button${current.linkCount == 1 ? '' : 's'}</b><c:if test="${current.joinForm}"> and the VIP Club form</c:if>.</c:otherwise>
                     </c:choose>
                     <a href="<c:out value="${previewUrl}"/>" target="_blank" rel="noopener" style="white-space:nowrap">Preview &#8599;</a>
@@ -583,6 +822,39 @@
                         </div>
                     </div>
                 </c:forEach>
+                <c:set var="iconKey" value="wifi"/>
+                <div class="link-field">
+                    <div class="ic"><%@ include file="_platform-icon.jspf" %></div>
+                    <label for="f-wifi">Free WiFi for customers</label>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <input type="text" id="f-wifi" name="wifiName" maxlength="32" style="flex:1;min-width:150px"
+                               value="<c:out value="${current.wifiName}"/>" placeholder="WiFi name">
+                        <input type="text" name="wifiPassword" maxlength="63" style="flex:1;min-width:150px" autocomplete="off"
+                               value="<c:out value="${current.wifiPassword}"/>" placeholder="Password (empty = no password)">
+                    </div>
+                    <div class="fh">Customers see the name and password with a Copy button. Use your <b>guest</b> WiFi. Leave the name empty to hide the WiFi button.</div>
+                </div>
+
+                <h2 style="margin-top:1.4rem">Button order</h2>
+                <p class="hint">Use &uarr; &darr; to choose what customers see first on your scan page. Faded ones are not set up, so they don't show.</p>
+                <input type="hidden" name="linkOrder" id="linkOrder" value="${current.linkOrderKeys}">
+                <ol class="ord-list" id="ordList">
+                    <c:forEach var="k" items="${fn:split(current.linkOrderKeys, ',')}">
+                        <c:choose>
+                            <c:when test="${k eq 'vip'}">
+                                <li data-key="vip" class="${current.joinForm or current.rewardsAllowed ? '' : 'off'}"><span class="n"></span><span class="em">&#128081;</span>VIP Club / Rewards <span class="ord-move"><button type="button" onclick="moveOrd(this,-1)" aria-label="Move up">&uarr;</button><button type="button" onclick="moveOrd(this,1)" aria-label="Move down">&darr;</button></span></li>
+                            </c:when>
+                            <c:when test="${k eq 'wifi'}">
+                                <c:set var="iconKey" value="wifi"/>
+                                <li data-key="wifi" class="${current.hasWifi ? '' : 'off'}"><span class="n"></span><%@ include file="_platform-icon.jspf" %>Free WiFi <span class="ord-move"><button type="button" onclick="moveOrd(this,-1)" aria-label="Move up">&uarr;</button><button type="button" onclick="moveOrd(this,1)" aria-label="Move down">&darr;</button></span></li>
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="iconKey" value="${k}"/>
+                                <li data-key="${k}" class="${empty current.linksByKey[k] ? 'off' : ''}"><span class="n"></span><%@ include file="_platform-icon.jspf" %><c:out value="${current.platformsByKey[k].label}"/> <span class="ord-move"><button type="button" onclick="moveOrd(this,-1)" aria-label="Move up">&uarr;</button><button type="button" onclick="moveOrd(this,1)" aria-label="Move down">&darr;</button></span></li>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </ol>
                 <c:if test="${not adminView}"><button type="submit" class="btn btn-primary">Save links</button></c:if>
                 </fieldset>
             </form>
@@ -611,6 +883,27 @@
 </div>
 
 <script>
+/* Button order on the scan page (Links tab): rows move in the list, the order goes in #linkOrder */
+function moveOrd(btn, dir) {
+    var li = btn.closest('li'), list = li.parentNode;
+    if (dir < 0 && li.previousElementSibling) list.insertBefore(li, li.previousElementSibling);
+    if (dir > 0 && li.nextElementSibling) list.insertBefore(li.nextElementSibling, li);
+    numberOrd();
+}
+function numberOrd() {
+    var list = document.getElementById('ordList');
+    if (!list) return;
+    var rows = list.querySelectorAll('li'), keys = [];
+    rows.forEach(function (li, i) {
+        li.querySelector('.n').textContent = i + 1;
+        var b = li.querySelectorAll('.ord-move button');
+        b[0].disabled = i === 0;
+        b[1].disabled = i === rows.length - 1;
+        keys.push(li.dataset.key);
+    });
+    document.getElementById('linkOrder').value = keys.join(',');
+}
+document.addEventListener('DOMContentLoaded', numberOrd);
 function copyReport() {
     var box = document.getElementById('reportText');
     var done = function () { document.getElementById('copyBtn').textContent = 'Copied ✓'; };
@@ -673,6 +966,41 @@ function renderPreview() {
 }
 
 var dashUrl = '${ctx}/review/dashboard', scannerId = '${current.id}';
+
+/* ── Rewards tab: scratch card form ── */
+function rwMode() {
+    var form = document.getElementById('scratchForm');
+    if (!form) return;
+    var offer = form.querySelector('input[name=mode]:checked').value === 'OFFER';
+    document.getElementById('rwAmount').hidden = offer;
+    document.getElementById('rwOffer').hidden = !offer;
+}
+function rwAddSlab() {
+    var rows = document.getElementById('slabRows');
+    if (rows.children.length >= 10) return;
+    var row = rows.children[0].cloneNode(true);
+    row.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+    rows.appendChild(row);
+}
+function rwAddOffer() {
+    var rows = document.getElementById('offerRows');
+    if (rows.children.length >= 10) return;
+    var t = rows.children[0].cloneNode(true);
+    t.value = '';
+    rows.appendChild(t);
+    t.focus();
+}
+(function () {
+    var rows = document.getElementById('slabRows');
+    if (!rows) return;
+    rows.addEventListener('input', function () {
+        var total = 0;
+        rows.querySelectorAll('.rw-slab').forEach(function (r) {
+            total += (+r.querySelector('[name=slabAmount]').value || 0) * (+r.querySelector('[name=slabCount]').value || 0);
+        });
+        document.getElementById('rwBudget').innerHTML = total ? 'Total budget: <b>₹' + total + '</b>' : '';
+    });
+})();
 
 /* ── Optional photo. wa.me links carry text only, so the photo goes as a link to a public
    offer page; WhatsApp shows that page's photo as a big preview card. ── */

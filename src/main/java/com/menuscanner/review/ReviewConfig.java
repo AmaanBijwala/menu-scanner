@@ -10,6 +10,12 @@ public final class ReviewConfig {
     private static final String BASE_URL;
     private static final String CONTACT_PHONE;
     private static final String CONTACT_NAME;
+    private static final String WA_NUMBER;
+    private static final String WA_VERIFY_TOKEN;
+    private static final String WA_APP_SECRET;
+    private static final String WA_ACCESS_TOKEN;
+    private static final String WA_PHONE_NUMBER_ID;
+    private static final String REWARDS_SECRET;
 
     static {
         Properties props = new Properties();
@@ -22,6 +28,14 @@ public final class ReviewConfig {
         BASE_URL      = props.getProperty("app.base.url", "http://localhost:8080/menu-scanner");
         CONTACT_PHONE = props.getProperty("review.contact.phone", "").trim();
         CONTACT_NAME  = props.getProperty("review.contact.name", "").trim();
+        // WhatsApp Cloud API (Meta) for verifying customers' numbers on the rewards page.
+        // review.wa.number: our WhatsApp Business number with country code, e.g. 919876543210
+        WA_NUMBER          = props.getProperty("review.wa.number", "").replaceAll("\\D", "");
+        WA_VERIFY_TOKEN    = props.getProperty("review.wa.verifyToken", "").trim();     // any string, typed into Meta's webhook setup
+        WA_APP_SECRET      = props.getProperty("review.wa.appSecret", "").trim();       // Meta app secret: checks webhook signatures
+        WA_ACCESS_TOKEN    = props.getProperty("review.wa.accessToken", "").trim();     // optional: to reply "verified"
+        WA_PHONE_NUMBER_ID = props.getProperty("review.wa.phoneNumberId", "").trim();   // optional: to reply "verified"
+        REWARDS_SECRET     = props.getProperty("review.rewards.secret", "").trim();     // signs the "remember this phone" cookie
     }
 
     /** Full URL encoded inside a sticker's QR, e.g. https://example.com/menu-scanner/s/K7P2QX */
@@ -47,6 +61,21 @@ public final class ReviewConfig {
         return CONTACT_PHONE.isEmpty() ? "" : "+" + CONTACT_PHONE;
     }
     public static String contactName()  { return CONTACT_NAME; }
+
+    /** Base URL of the app, e.g. https://example.com/menu-scanner */
+    public static String baseUrl() { return BASE_URL; }
+
+    public static String waNumber()        { return WA_NUMBER; }
+    public static String waVerifyToken()   { return WA_VERIFY_TOKEN; }
+    public static String waAppSecret()     { return WA_APP_SECRET; }
+    public static String waAccessToken()   { return WA_ACCESS_TOKEN; }
+    public static String waPhoneNumberId() { return WA_PHONE_NUMBER_ID; }
+    public static String rewardsSecret()   { return REWARDS_SECRET; }
+
+    /** Rewards can only run once customers can verify their number on WhatsApp. */
+    public static boolean waVerifyReady() {
+        return WA_NUMBER.matches("\\d{10,15}") && !WA_APP_SECRET.isEmpty() && !REWARDS_SECRET.isEmpty();
+    }
 
     private ReviewConfig() {}
 }

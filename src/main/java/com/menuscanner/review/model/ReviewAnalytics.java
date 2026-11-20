@@ -60,6 +60,7 @@ public class ReviewAnalytics {
     private String busiestDay;
     private String busiestTime;
     private AppRow topApp;
+    private int wifiTaps;      // taps on the WiFi button (not a trip to an app, so not in totalClicks)
 
     /**
      * @param dailyCounts index 0 = 1st of the month
@@ -118,6 +119,8 @@ public class ReviewAnalytics {
     public String getBusiestDay()       { return busiestDay; }
     public String getBusiestTime()      { return busiestTime; }
     public AppRow getTopApp()           { return topApp; }
+    public int getWifiTaps()            { return wifiTaps; }
+    public void setWifiTaps(int n)      { this.wifiTaps = n; }
 
     private static int max(int[] a)     { int m = 0; for (int v : a) m = Math.max(m, v); return m; }
 

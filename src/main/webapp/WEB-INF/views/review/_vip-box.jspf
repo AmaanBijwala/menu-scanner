@@ -1,0 +1,40 @@
+<%-- The VIP Club button, or the rewards link when rewards are live. Included by choose-app.jsp
+     at the position the super admin set (scanner.vipIndex). --%>
+    <c:if test="${rewards.any}">
+        <%-- Stamp card / scratch card replace the VIP Club form: the rewards page also signs them up --%>
+        <a class="vip" href="${rewardsUrl}">
+            <span class="face" aria-hidden="true"></span>
+            <span class="tile" aria-hidden="true">${rewards.scratchOn ? '&#127873;' : '&#127941;'}</span>
+            <span class="txt">
+                <c:choose>
+                    <c:when test="${rewards.stampOn and rewards.scratchOn}">
+                        <b>Collect your <em>stamp</em> &amp; scratch!</b>
+                        <small><c:out value="${rewards.stamp.stampsNeeded}"/> stamps = <c:out value="${rewards.stamp.reward}"/>, plus a scratch card</small>
+                    </c:when>
+                    <c:when test="${rewards.stampOn}">
+                        <b>Collect your <em>stamp</em></b>
+                        <small><c:out value="${rewards.stamp.stampsNeeded}"/> stamps = <c:out value="${rewards.stamp.reward}"/></small>
+                    </c:when>
+                    <c:otherwise>
+                        <b>Scratch &amp; <em>win</em></b>
+                        <small>Try your luck today, every scratch counts</small>
+                    </c:otherwise>
+                </c:choose>
+                <span class="badge">FREE &middot; ONCE A DAY</span>
+            </span>
+            <span class="arrow" aria-hidden="true">&#10140;</span>
+        </a>
+    </c:if>
+    <c:if test="${scanner.joinForm and not rewards.any}">
+        <button type="button" class="vip" id="vipBtn" aria-haspopup="dialog">
+            <span class="face" aria-hidden="true"></span>
+            <span class="tile" aria-hidden="true">&#128081;</span>
+            <span class="txt">
+                <b id="vipTitle">Join our <em>VIP Club</em></b>
+                <small id="vipSub">Exclusive offers &amp; updates on WhatsApp</small>
+                <span class="badge" id="vipBadge">FREE &middot; TAKES 20 SECONDS</span>
+            </span>
+            <span class="arrow" aria-hidden="true" id="vipArrow">&#10140;</span>
+        </button>
+    </c:if>
+

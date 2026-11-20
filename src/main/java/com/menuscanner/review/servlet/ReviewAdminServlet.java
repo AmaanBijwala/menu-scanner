@@ -69,6 +69,7 @@ public class ReviewAdminServlet extends HttpServlet {
             req.setAttribute("scansThisMonth",  scansThisMonth);
             req.setAttribute("platforms",       ReviewPlatform.values());
             req.setAttribute("ownerLoginUrl",   ReviewConfig.ownerLoginUrl());
+            req.setAttribute("waReady",         ReviewConfig.waVerifyReady());
         } catch (SQLException e) {
             getServletContext().log("Review scanners load error", e);
             req.setAttribute("loadError", "Could not load scanners: " + e.getMessage());
@@ -125,8 +126,16 @@ public class ReviewAdminServlet extends HttpServlet {
                         }
                     }
                     boolean joinForm = req.getParameter("joinForm") != null;
-                    if (links.isEmpty() && !joinForm) {
-                        resp.sendRedirect(redirect + "?error=" + encode("Add at least one link (Google, Instagram, Facebook or YouTube), or switch on the VIP Club form"));
+                    String wifiName = trimToNull(req.getParameter("wifiName"));
+                    String wifiPass = trimToNull(req.getParameter("wifiPassword"));
+                    String wifiError = wifiError(wifiName, wifiPass);
+                    if (wifiError != null) {
+                        resp.sendRedirect(redirect + "?error=" + encode(wifiError));
+                        return;
+                    }
+                    if (wifiName == null) wifiPass = null;
+                    if (links.isEmpty() && !joinForm && wifiName == null) {
+                        resp.sendRedirect(redirect + "?error=" + encode("Add at least one link (Google, Instagram, Facebook or YouTube), the WiFi, or switch on the VIP Club form"));
                         return;
                     }
 
@@ -141,7 +150,8 @@ public class ReviewAdminServlet extends HttpServlet {
                     }
 
                     ReviewScanner before = scannerDAO.findById(id);
-                    scannerDAO.assign(id, name, phone, links, joinForm);
+                    scannerDAO.assign(id, name, phone, links, joinForm, parseLinkOrder(req.getParameter("linkOrder")),
+                                      wifiName, wifiPass);
 
                     String note = "";
                     if (wantsLogin) {
@@ -165,6 +175,36 @@ public class ReviewAdminServlet extends HttpServlet {
                     long id = Long.parseLong(req.getParameter("id"));
                     scannerDAO.unassign(id);
                     resp.sendRedirect(redirect + "?success=" + encode("Scanner " + String.format("#%03d", id) + " is free again"));
+                }
+
+                case "features" -> {
+                    long id = Long.parseLong(req.getParameter("id"));
+                    boolean stamp   = req.getParameter("stampAllowed") != null;
+                    boolean scratch = req.getParameter("scratchAllowed") != null;
+                    boolean geo     = req.getParameter("geoCheck") != null;
+                    Double lat = null, lng = null;
+                    String loc = trimToNull(req.getParameter("shopLocation"));
+                    if (loc != null) {
+                        // "19.137970, 72.845594" as copied from Google Maps (right-click on the pin)
+                        java.util.regex.Matcher lm = java.util.regex.Pattern
+                                .compile("^\\s*(-?\\d{1,2}(?:\\.\\d+)?)\\s*,\\s*(-?\\d{1,3}(?:\\.\\d+)?)\\s*$").matcher(loc);
+                        if (!lm.matches()) {
+                            resp.sendRedirect(redirect + "?error=" + encode("Shop location should look like 19.137970, 72.845594 (copy it from Google Maps)"));
+                            return;
+                        }
+                        lat = Double.valueOf(lm.group(1));
+                        lng = Double.valueOf(lm.group(2));
+                        if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+                            resp.sendRedirect(redirect + "?error=" + encode("That shop location is not a real place"));
+                            return;
+                        }
+                    }
+                    if (geo && lat == null) {
+                        resp.sendRedirect(redirect + "?error=" + encode("Add the shop location to switch on the near-the-shop check"));
+                        return;
+                    }
+                    scannerDAO.updateFeatures(id, stamp, scratch, geo, lat, lng);
+                    resp.sendRedirect(redirect + "?success=" + encode("Features saved for " + String.format("#%03d", id)));
                 }
 
                 case "toggleActive" -> {
@@ -199,6 +239,24 @@ public class ReviewAdminServlet extends HttpServlet {
             // fall through to current month
         }
         return YearMonth.now(IST);
+    }
+
+    /**
+     * "instagram,vip,google,..." from the assign form → "INSTAGRAM,VIP,GOOGLE,FACEBOOK,WHATSAPP,YOUTUBE",
+     * or null when it is the default order (so stored rows stay null unless someone changed it).
+     */
+    public static String parseLinkOrder(String raw) {
+        List<String> order = ReviewScanner.orderNames(raw);
+        return order.equals(ReviewScanner.orderNames(null)) ? null : String.join(",", order);
+    }
+
+    /** Shared with the owner dashboard: null when the WiFi fields are fine. */
+    public static String wifiError(String name, String password) {
+        if (name == null && password != null) return "Add the WiFi name too, or clear the WiFi password";
+        if (name != null && name.length() > 32) return "WiFi name can be at most 32 characters";
+        if (password != null && (password.length() < 8 || password.length() > 63))
+            return "WiFi password should be 8 to 63 characters (leave it empty for an open WiFi)";
+        return null;
     }
 
     private String trimToNull(String s) {

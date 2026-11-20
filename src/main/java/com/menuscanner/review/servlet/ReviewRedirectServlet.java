@@ -1,6 +1,8 @@
 package com.menuscanner.review.servlet;
 
 import com.menuscanner.review.ReviewConfig;
+import com.menuscanner.review.RewardsState;
+import com.menuscanner.review.dao.ReviewRewardsDAO;
 import com.menuscanner.review.dao.ReviewContactDAO;
 import com.menuscanner.review.dao.ReviewScannerDAO;
 import com.menuscanner.review.model.ReviewContact;
@@ -31,6 +33,7 @@ import java.util.regex.Pattern;
  *                           two or more links    → count the scan, show the "choose an app" page
  *                           unassigned / paused  → info page (sales pitch for unassigned stickers)
  * /s/{code}/go/{platform}   from the choose page → count the trip to that app, 302 to it
+ * /s/{code}/go/wifi         the WiFi button (details are on the page) → count the tap, 204
  * POST /s/{code}/join       the "Join our VIP Club" form on the choose page → JSON
  * </pre>
  * With the join form switched on, the choose page is shown even for a single link.
@@ -52,6 +55,7 @@ public class ReviewRedirectServlet extends HttpServlet {
 
     private final ReviewScannerDAO scannerDAO = new ReviewScannerDAO();
     private final ReviewContactDAO contactDAO = new ReviewContactDAO();
+    private final ReviewRewardsDAO rewardsDAO = new ReviewRewardsDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -99,6 +103,11 @@ public class ReviewRedirectServlet extends HttpServlet {
             String hash = count ? visitorHash(req.getRemoteAddr(), ua) : null;
             Map<ReviewPlatform, String> links = scanner.getLinks();
 
+            if ("wifi".equals(platformKey)) {                // WiFi button: the page shows the details, we only count
+                if (count && scanner.isHasWifi()) scannerDAO.recordWifiTap(scanner.getId(), hash);
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                return;
+            }
             if (platformKey != null) {                       // a button on the choose page
                 ReviewPlatform p = ReviewPlatform.fromKey(platformKey);
                 if (p == null || !links.containsKey(p)) {    // link removed since the page loaded
@@ -111,7 +120,14 @@ public class ReviewRedirectServlet extends HttpServlet {
             }
 
             if (count) scannerDAO.recordScan(scanner.getId(), hash);
-            if (links.size() == 1 && !scanner.isJoinForm()) {   // nothing to choose — go straight there
+            RewardsState rewards;
+            try {
+                rewards = RewardsState.load(scanner, rewardsDAO);
+            } catch (SQLException e) {
+                getServletContext().log("Rewards lookup failed for " + code, e);
+                rewards = RewardsState.none();
+            }
+            if (links.size() == 1 && !scanner.isJoinForm() && !rewards.isAny() && !scanner.isHasWifi()) {   // nothing to choose — go straight there
                 Map.Entry<ReviewPlatform, String> only = links.entrySet().iterator().next();
                 if (count) scannerDAO.recordClick(scanner.getId(), only.getKey(), hash);
                 resp.sendRedirect(only.getValue());
@@ -123,6 +139,9 @@ public class ReviewRedirectServlet extends HttpServlet {
             req.setAttribute("goBase",    req.getContextPath() + "/s/" + code + "/go/");
             req.setAttribute("preview",   req.getParameter("preview") != null);
             req.setAttribute("joinUrl",   req.getContextPath() + "/s/" + code + "/join");
+            req.setAttribute("rewards",   rewards);
+            req.setAttribute("rewardsUrl", req.getContextPath() + "/rw/" + code
+                    + (req.getParameter("preview") != null ? "?preview=1" : ""));
             req.getRequestDispatcher("/WEB-INF/views/review/choose-app.jsp").forward(req, resp);
             return;
         }

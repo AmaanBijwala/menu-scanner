@@ -144,6 +144,19 @@
         .app.facebook  { background: var(--fb); --shadow: rgba(24, 119, 242, .55); }
         .app.youtube   { background: var(--yt); --shadow: rgba(220, 0, 20, .5); }
         .app.whatsapp  { background: var(--wa); --shadow: rgba(18, 140, 126, .55); }
+        .app.wifi      { background: linear-gradient(120deg, #0284c7, #0ea5e9 60%, #22d3ee); --shadow: rgba(2, 132, 199, .55);
+                         width: 100%; border: 0; font: inherit; cursor: pointer; }
+
+        /* WiFi details sheet */
+        .wifi-row { display: flex; align-items: center; gap: .6rem; margin: 0 0 .7rem; padding: .75rem .9rem;
+                    border-radius: 14px; background: #f4f2fa; }
+        .wifi-row .k { font-size: .72rem; color: var(--muted); }
+        .wifi-row .v { font-weight: 700; font-size: 1.05rem; word-break: break-all; }
+        .wifi-row > div { flex: 1; min-width: 0; }
+        .wifi-copy { flex: none; border: 0; border-radius: 10px; padding: .55rem .8rem; cursor: pointer;
+                     font: 600 .85rem 'Poppins', system-ui, sans-serif; background: #0ea5e9; color: #fff; }
+        .wifi-copy.done { background: #16a34a; }
+        .wifi-steps { margin: .4rem 0 1rem; padding-left: 1.2rem; font-size: .86rem; color: var(--muted); line-height: 1.6; }
 
         /* Google: white button with a spinning four-colour border */
         .app.google { color: var(--ink); background: #fff; --shadow: rgba(66, 133, 244, .45); padding: 1rem 1rem 1rem .9rem; }
@@ -190,6 +203,8 @@
             animation: slideIn .6s .45s cubic-bezier(.2,.9,.3,1.25) both;
             transition: transform .18s ease;
         }
+        a.vip { text-decoration: none; }
+        .apps .vip { margin-bottom: 0; }   /* the grid gap spaces it */
         .vip:hover { transform: translateY(-3px); }
         .vip:active { transform: scale(.97); }
         .vip:focus-visible { outline: 3px solid #1d1b2f; outline-offset: 3px; }
@@ -312,23 +327,26 @@
     </div>
     <p class="hello">Thanks for visiting</p>
     <h1><c:out value="${scanner.businessName}"/></h1>
-    <p class="sub">${empty links ? 'Join our VIP Club for exclusive offers on WhatsApp. It only takes a few seconds!' : 'Share your experience or follow us. It only takes a few seconds!'}</p>
+    <p class="sub">${empty links and not scanner.hasWifi ? 'Join our VIP Club for exclusive offers on WhatsApp. It only takes a few seconds!' : 'Share your experience or follow us. It only takes a few seconds!'}</p>
 
-    <c:if test="${scanner.joinForm}">
-        <button type="button" class="vip" id="vipBtn" aria-haspopup="dialog">
-            <span class="face" aria-hidden="true"></span>
-            <span class="tile" aria-hidden="true">&#128081;</span>
-            <span class="txt">
-                <b id="vipTitle">Join our <em>VIP Club</em></b>
-                <small id="vipSub">Exclusive offers &amp; updates on WhatsApp</small>
-                <span class="badge" id="vipBadge">FREE &middot; TAKES 20 SECONDS</span>
-            </span>
-            <span class="arrow" aria-hidden="true" id="vipArrow">&#10140;</span>
-        </button>
-    </c:if>
-
+    <%-- Buttons in the admin's order (scanner.displayKeys): the VIP / rewards box, the apps and the WiFi --%>
     <nav class="apps" aria-label="Choose an app">
-        <c:forEach var="p" items="${links}" varStatus="st">
+        <c:forEach var="k" items="${scanner.displayKeys}" varStatus="st">
+            <c:choose>
+                <c:when test="${k eq 'vip'}"><%@ include file="_vip-box.jspf" %></c:when>
+                <c:when test="${k eq 'wifi'}">
+            <c:set var="iconKey" value="wifi"/>
+            <button type="button" class="app wifi" id="wifiBtn" style="--i:${st.index}" aria-haspopup="dialog">
+                <span class="tile"><%@ include file="_platform-icon.jspf" %></span>
+                <span class="txt">
+                    <b>Connect to free WiFi</b>
+                    <small>Tap to see the WiFi name &amp; password</small>
+                </span>
+                <span class="arrow" aria-hidden="true">&#10140;</span>
+            </button>
+                </c:when>
+                <c:otherwise>
+            <c:set var="p" value="${scanner.platformsByKey[k]}"/>
             <c:set var="iconKey" value="${p.key}"/>
             <a class="app ${p.key}" style="--i:${st.index}"
                href="${goBase}${p.key}${preview ? '?preview=1' : ''}">
@@ -348,6 +366,8 @@
                 </span>
                 <span class="arrow" aria-hidden="true">&#10140;</span>
             </a>
+                </c:otherwise>
+            </c:choose>
         </c:forEach>
     </nav>
 
@@ -355,7 +375,7 @@
     <p class="brand">The Socio Advert<span>Powered by Bijwala Solutions</span></p>
 </main>
 
-<c:if test="${scanner.joinForm}">
+<c:if test="${scanner.joinForm and not rewards.any}">
 <div class="sheet" id="joinSheet" hidden>
     <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
         <button type="button" class="sheet-close" id="joinClose" aria-label="Close">&#10005;</button>
@@ -409,6 +429,84 @@
 </div>
 </c:if>
 
+<c:if test="${scanner.hasWifi}">
+<div class="sheet" id="wifiSheet" hidden>
+    <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="wifiTitle">
+        <button type="button" class="sheet-close" id="wifiClose" aria-label="Close">&#10005;</button>
+        <h2 id="wifiTitle">&#128246; Free WiFi</h2>
+        <p class="lead">Welcome to <b><c:out value="${scanner.businessName}"/></b>! Connect in a few seconds.</p>
+        <div class="wifi-row">
+            <div><div class="k">WiFi name</div><div class="v" id="wifiName"><c:out value="${scanner.wifiName}"/></div></div>
+            <button type="button" class="wifi-copy" data-copy="wifiName">Copy</button>
+        </div>
+        <c:choose>
+            <c:when test="${not empty scanner.wifiPassword}">
+                <div class="wifi-row">
+                    <div><div class="k">Password</div><div class="v" id="wifiPass"><c:out value="${scanner.wifiPassword}"/></div></div>
+                    <button type="button" class="wifi-copy" data-copy="wifiPass">Copy</button>
+                </div>
+                <ol class="wifi-steps">
+                    <li>Tap <b>Copy</b> next to the password</li>
+                    <li>Open <b>Settings &rarr; WiFi</b> and pick <b><c:out value="${scanner.wifiName}"/></b></li>
+                    <li>Paste the password and tap <b>Join</b></li>
+                </ol>
+            </c:when>
+            <c:otherwise>
+                <ol class="wifi-steps">
+                    <li>Open <b>Settings &rarr; WiFi</b></li>
+                    <li>Pick <b><c:out value="${scanner.wifiName}"/></b>, no password needed</li>
+                </ol>
+            </c:otherwise>
+        </c:choose>
+        <button type="button" class="join-btn" id="wifiDone">Got it</button>
+    </div>
+</div>
+<script>
+(function () {
+    var btn = document.getElementById('wifiBtn'), sheet = document.getElementById('wifiSheet');
+    if (!btn || !sheet) return;
+    var counted = false;
+    function open() {
+        if (!counted) {                       // count the tap once per page view
+            counted = true;
+            try { fetch('${goBase}wifi${preview ? '?preview=1' : ''}', { keepalive: true }); } catch (e) {}
+        }
+        sheet.hidden = false;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('open'); }); });
+    }
+    function close() {
+        sheet.classList.remove('open');
+        setTimeout(function () { sheet.hidden = true; }, 300);
+    }
+    btn.addEventListener('click', open);
+    document.getElementById('wifiClose').addEventListener('click', close);
+    document.getElementById('wifiDone').addEventListener('click', close);
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) close(); });
+
+    function fallbackCopy(text) {
+        var t = document.createElement('textarea');
+        t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+        document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(t);
+    }
+    sheet.querySelectorAll('.wifi-copy').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var text = document.getElementById(b.dataset.copy).textContent;
+            var done = function () {
+                b.textContent = 'Copied \u2713'; b.classList.add('done');
+                setTimeout(function () { b.textContent = 'Copy'; b.classList.remove('done'); }, 2000);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+            } else { fallbackCopy(text); done(); }
+        });
+    });
+})();
+</script>
+</c:if>
+
 <script>
 (function () {
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -446,7 +544,7 @@
         }
     }
 
-    document.querySelectorAll('.app').forEach(function (a) {
+    document.querySelectorAll('a.app').forEach(function (a) {
         a.addEventListener('click', function (e) {
             // Let new-tab / modified clicks behave normally
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
